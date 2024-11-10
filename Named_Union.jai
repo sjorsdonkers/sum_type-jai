@@ -1,22 +1,34 @@
+MyStruct :: struct {
+    a: s32;
+    b: bool;
+}
 main :: () {
     MyFruit :: Named_Union (
         .{"Pineapple", u8},
         .{"Mango", string},
+        .{"Kiwi", MyStruct},
     );
 
     a : MyFruit;
-    set(*a, cast(MyFruit.Pineapple) 5);
+    set(*a, MyFruit.Pineapple.{5});
     pinapple := isa(a, MyFruit.Pineapple);
     pinapple_type := union_type(a);
     if pinapple {
         print("a: % as % is %\n", a, pinapple_type, << pinapple);
     }
 
-    set(*a, cast(MyFruit.Mango) "Hello");
+    set(*a, MyFruit.Mango.{"Hello"});
     mango := isa(a, MyFruit.Mango);
     mango_type := union_type(a);
     if mango {
         print("a: % as % is %\n", a, mango_type, << mango);
+    }
+
+    set(*a, MyFruit.Kiwi.{34, true});
+    kiwi := isa(a, MyFruit.Kiwi);
+    kiwi_type := union_type(a);
+    if kiwi {
+        print("a: % as % is %\n", a, kiwi_type, << kiwi);
     }
 }
 
@@ -25,22 +37,29 @@ Tag :: struct {
     type: Type;
 }
 
-Named_Union :: struct (tags: ..Tag) {
+Named_Union :: struct ($tags: ..Tag) {
     #insert -> string {
         builder: String_Builder;
 
-        // Guy :: #type,distinct u8;
-        // Gal :: #type,distinct string;
-        for tags { print_to_builder(*builder, "    % :: #type,distinct %;\n", it.name, it.type); }
+        // Pineapple :: struct { value: u8; }
+        // Mango :: struct { value: string; }
+        // Kiwi :: #type,distinct MyStruct;
+        for tags {
+            if (cast(*Type_Info)(it.type)).type == .STRUCT { // TODO handle VARIANT
+                print_to_builder(*builder, "    % :: #type,distinct %;\n", it.name, it.type);
+            } else {
+                print_to_builder(*builder, "    % :: struct { value: %; }\n", it.name, it.type);
+            }
+        }
 
-        // value_types :: Type.[Guy, Gal];
+        // value_types :: Type.[Pineapple, Mango];
         print_to_builder(*builder, "    value_types :: Type.[%", tags[0].name);
         for 1..tags.count-1 { print_to_builder(*builder, ", %", tags[it].name); }
         print_to_builder(*builder, "];\n");
 
         // union {
-        //     _guy: Guy;
-        //     _gal: Gal;
+        //     _pineapple: Pineapple;
+        //     _mango: Mango;
         // };
         print_to_builder(*builder, "    bytes: union {\n");
         for tags { print_to_builder(*builder, "        _%: %;\n", to_lower_copy_new(it.name), it.name); }
@@ -86,6 +105,3 @@ union_type :: (u: Named_Union) -> Type {
 
 #import "Basic";
 #import "String";
-
-
-#import "Compiler";
