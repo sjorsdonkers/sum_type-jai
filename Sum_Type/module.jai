@@ -1,10 +1,10 @@
 // Jai language support can improve:
-// - The need to #poke_name of user-structs into the Named_Union module.
-//   To avoid this I think we need $call := #caller_code and #insert,scope(call) to work on structs (Named_Union)
-// - Nested Named_Unions requires stallable on #insert: #insert,stallable
-// - Allow polymorphic Named_Unions. Since the Named_Union already is polymorphic a using #as work around is required.
-//   With language level support for Named_Unions for example Option would simplify to
-//   Option :: nunion (T: Type) {None :: void, Some :: T}
+// - The need to #poke_name of user-structs into the Sum_Type module.
+//   To avoid this I think we need $call := #caller_code and #insert,scope(call) to work on structs (Sum_Type)
+// - Nested Sum_Types requires stallable on #insert: #insert,stallable
+// - Allow polymorphic Sum_Types. Since the Sum_Type already is polymorphic a using #as work around is required.
+//   With language level support for Sum_Types for example Option would simplify to
+//   Option :: sumtype (T: Type) {None :: void, Some :: T}
 // - Type deduction for arguments similar to enums' dot notation.
 //   match(opt,
 //       (s: .Some) { print("Some: %\n", s); },
@@ -14,21 +14,21 @@
 //   fruitsicle :MyFruit= .Pineapple.{5};
 
 // LIMITATIONS:
-// - Nested Named_unions require the nested type to have been generated it in advance
-// - Type-variants of Named_unions and Named_unions containing user-defined type-variants may not work yet
+// - Nested Sum_Types require the nested type to have been generated it in advance
+// - Type-variants of Sum_Types and Sum_Types containing user-defined type-variants may not work yet
 // - Missing case procedures are only detected at compile time
-// - Tag is always 1 byte, don't make a Named_Union with more than 255 variants..
+// - Tag is always 1 byte, don't make a Sum_Type with more than 255 variants..
 
 #load "option.jai";
 #load "result.jai";
 
-// Define a Named_Union by providing the names and types of its variants.
-// MyFruit :: Named_Union (
+// Define a Sum_Type by providing the names and types of its variants.
+// MyFruit :: Sum_Type (
 //     .{"Pineapple", u8},
 //     .{"Mango", string},
 //     .{"Kiwi", MyStruct},
 // );
-Named_Union :: struct ($variants: ..Variant) {
+Sum_Type :: struct ($variants: ..Variant) {
     #insert -> string {
         builder: String_Builder;
 
@@ -38,7 +38,7 @@ Named_Union :: struct ($variants: ..Variant) {
         for variants {
             if (cast(*Type_Info)(it.type)).type == {
             case .STRUCT; print_to_builder(*builder, "% :: #type,distinct %;\n", it.name, it.type);
-            case .VARIANT; assert(false, "VARIANT not supported yet in Named_Union");
+            case .VARIANT; assert(false, "VARIANT not supported yet in Sum_Type");
             case; print_to_builder(*builder, "% :: struct { value: %; }\n", it.name, it.type);
             }
         }
@@ -74,22 +74,22 @@ Named_Union :: struct ($variants: ..Variant) {
               // It is an enum to make as it prints nices and #complete can be used on a switch statement
               // TODO dynamically make u8 bigger if needed
 }
-// Helper struct to define the variants of a Named_Union
+// Helper struct to define the variants of a Sum_Type
 Variant :: struct {
     name: string;
     type: Type;
 }
 
 // set(*u, value): Set the type tag of 'u' to type_of(value), and copy 'value' into u's storage.
-set :: (u: *Named_Union, value: $T) {
+set :: (u: *Sum_Type, value: $T) {
     target_tag :: #run union_index(u.value_types, T);
     u.tag = target_tag;
     pointer := cast(*T) *u.bytes;
     <<pointer = value;
 }
 
-// isa(u, T): Does the tagged union 'u' hold a value of type 'T'?
-isa :: (u: Named_Union, $T: Type) -> *T {
+// isa(u, T): Does the Sum_Type 'u' hold a value of type 'T'?
+isa :: (u: Sum_Type, $T: Type) -> *T {
     // If the tag is T, return appropriately casted memory.
     // Otherwise, return null.
     // This is equivalent to true or false if used in an 'if' statement.
@@ -104,7 +104,7 @@ union_index :: ($types: []Type, $T: Type) -> u8 {
     return cast(u8) index;
 }
 
-union_type :: (u: Named_Union) -> Type {
+union_type :: (u: Sum_Type) -> Type {
     return u.value_types[u.tag];
 }
 
@@ -114,7 +114,7 @@ union_type :: (u: Named_Union) -> Type {
 //     (m: MyFruit.Mango)     { print("My ango, %\n", m); },
 //     (k: MyFruit.Kiwi)      { print("My iwi,  %\n", k); },
 // );
-match :: (u: $U/Named_Union, case_procs: ..Any) { // TODO find a better type than Any for the proc pointers
+match :: (u: $U/Sum_Type, case_procs: ..Any) { // TODO find a better type than Any for the proc pointers
     u_type := union_type(u);
     u_info := cast(*Type_Info) u_type;
     case_proc : Any;
@@ -131,11 +131,11 @@ match :: (u: $U/Named_Union, case_procs: ..Any) { // TODO find a better type tha
         builder: String_Builder;
 
         info := type_info(U);
-        for info.members { // To make a polymorphic Named_Union, a user may define a struct with a member using #as Named_Union(..)
+        for info.members { // To make a polymorphic Sum_Type, a user may define a struct with a member using #as Sum_Type(..)
             if it.flags & .AS {
-                assert(it.type.type == .STRUCT, "Named_Union must be a struct");
+                assert(it.type.type == .STRUCT, "Sum_Type must be a struct");
                 info = cast(*Type_Info_Struct) it.type; // TODO handle .VARIANT
-                assert(info.name == "Named_Union");
+                assert(info.name == "Sum_Type");
                 break;
             }
         }

@@ -3,7 +3,7 @@ MyStruct :: struct {
     b: bool;
 }
 main :: () {
-    MyFruit :: Named_Union (
+    MyFruit :: Sum_Type (
         .{"Pineapple", u8},  // Pineapple :: u8
         .{"Mango", string},  // Mango :: string
         .{"Kiwi", MyStruct}, // Kiwi :: MyStruct
@@ -40,7 +40,7 @@ oh_nose :: (yes: bool) -> Result(s8, string) {
 
 //NestedUnion :: Result(Option(s32), string); // Nested requires #insert,stallable. Or Option(s32) to have previously been generated
 
-NU :: #import, file "../Named_Union/module.jai";
-#poke_name NU MyStruct; // To avoid this I think we need $call := #caller_code and #insert,scope(call) to work on structs (Named_Union)
-#import, file "../Named_Union/module.jai";
+NU :: #import, file "../Sum_Type/module.jai";
+#poke_name NU MyStruct; // To avoid this I think we need $call := #caller_code and #insert,scope(call) to work on structs (Sum_Type)
+#import, file "../Sum_Type/module.jai";
 #import "Basic";
