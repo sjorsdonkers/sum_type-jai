@@ -4,9 +4,9 @@ MyStruct :: struct {
 }
 main :: () {
     MyFruit :: Named_Union (
-        .{"Pineapple", u8},  // Pineapple: u8
-        .{"Mango", string},  // Mango: string
-        .{"Kiwi", MyStruct}, // Kiwi: MyStruct
+        .{"Pineapple", u8},  // Pineapple :: u8
+        .{"Mango", string},  // Mango :: string
+        .{"Kiwi", MyStruct}, // Kiwi :: MyStruct
     );
     fruitsicle : MyFruit;
     set(*fruitsicle, MyFruit.Pineapple.{5});
@@ -35,7 +35,7 @@ main :: () {
         (e: Result(s8, string).Else) { print("Else: %\n", e); },
     );
 }
-NoseReturn :: Result(Option(s8), string); // Nested requires #insert,stallable
+//NoseReturn :: Result(Option(s32), string); // Nested requires #insert,stallable. Or Option(s32) to have previously been generated
 oh_nose :: (yes: bool) -> Result(s8, string) {
     Res :: Result(s8, string);
     output: Res;

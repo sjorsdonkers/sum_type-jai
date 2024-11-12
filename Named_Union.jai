@@ -1,3 +1,24 @@
+// Jai language support can improve:
+// - The need to #poke_name of user-structs into the Named_Union module.
+//   To avoid this I think we need $call := #caller_code and #insert,scope(call) to work on structs (Named_Union)
+// - Nested Named_Unions requires stallable on #insert: #insert,stallable
+// - Allow polymorphic Named_Unions. Since the Named_Union already is polymorphic a using #as work around is required.
+//   With language level support for Named_Unions for example Option would simplify to
+//   Option :: nunion (T: Type) {None :: void, Some :: T}
+// - Type deduction for arguments similar to enums' dot notation.
+//   match(opt,
+//       (s: .Some) { print("Some: %\n", s); },
+//       (n: .None) { print("None\n"); },
+//   );
+// - Single line initialization would be nice, especially to return from a function or call a function
+//   fruitsicle :MyFruit= .Pineapple.{5};
+
+// LIMITATIONS:
+// - Nested Named_unions require the nested type to have been generated it in advance
+// - Type-variants of Named_unions and Named_unions containing user-defined type-variants may not work yet
+// - Missing case procedures are only detected at compile time
+// - Tag is always 1 byte, don't make a Named_Union with more than 255 variants..
+
 // This is meant for optional data, generally in structs only not to indicate state or errors.
 // Do not use this as a procedure return type to indicate None left or so, use Result
 Option :: struct (T: Type) {
@@ -7,6 +28,7 @@ Option :: struct (T: Type) {
     );
 }
 
+// Meant as function return type to indicate success or else (error, end of something etc.)
 Result :: struct (Ok: Type, Else: Type) {
     using #as result: Named_Union(
         .{"Else", Else},
@@ -18,6 +40,13 @@ Variant :: struct {
     name: string;
     type: Type;
 }
+
+// Define a Named_Union by providing the names and types of its variants.
+// MyFruit :: Named_Union (
+//     .{"Pineapple", u8},
+//     .{"Mango", string},
+//     .{"Kiwi", MyStruct},
+// );
 Named_Union :: struct ($variants: ..Variant) {
     #insert -> string {
         builder: String_Builder;
@@ -93,6 +122,12 @@ union_type :: (u: Named_Union) -> Type {
     return u.value_types[u.tag];
 }
 
+// Example usage:
+// match(fruitsicle,
+//     (p: MyFruit.Pineapple) { print("My pina, %\n", p); },
+//     (m: MyFruit.Mango)     { print("My ango, %\n", m); },
+//     (k: MyFruit.Kiwi)      { print("My iwi,  %\n", k); },
+// );
 match :: (u: $U/Named_Union, case_procs: ..Any) { // TODO find a better type than Any for the proc pointers
     u_type := union_type(u);
     u_info := cast(*Type_Info) u_type;
