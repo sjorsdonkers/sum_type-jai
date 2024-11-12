@@ -2,7 +2,8 @@ MyStruct :: struct {
     a: s32;
     b: bool;
 }
-MyFruit :: NU.Named_Union (
+// :: #type,distinct MyStruct;
+MyFruit :: #type NU.Named_Union (
     .{"Pineapple", u8},
     .{"Mango", string},
     .{"Kiwi", MyStruct},
@@ -31,14 +32,10 @@ main :: () {
     }
 
     match(a,
-        .{MyFruit.Pineapple, my_func},
-        .{MyFruit.Mango, my_func},
-        .{MyFruit.Kiwi, my_func},
+        .{MyFruit.Pineapple, (asd: Any) { print("My pina, %\n", asd); }},
+        .{MyFruit.Mango, (asd: Any) { print("My ango, %\n", asd); }},
+        .{MyFruit.Kiwi, (asd: Any) { print("My iwi, %\n", asd); }},
     );
-}
-
-my_func :: (asd: Any) {
-    print("Hello from my_func, %\n", asd);
 }
 
 Casu :: struct {
@@ -46,18 +43,27 @@ Casu :: struct {
     body: (Any) -> ();
 }
 
-match :: (u: MyFruit, cases: ..Casu) {
+match :: (u: $U/NU.Named_Union, cases: ..Casu) {
     type := NU.union_type(u);
+    body : (Any) -> ();
+    for cases if type == it.tag body = it.body;
+    #insert -> string {
+        builder: String_Builder;
 
-    for cases {
-        if type == it.tag {
-            if type == {
-            case MyFruit.Pineapple; val := NU.isa(u, MyFruit.Pineapple); it.body(<<val);
-            case MyFruit.Mango; val := NU.isa(u, MyFruit.Mango); it.body(<<val);
-            case MyFruit.Kiwi; val := NU.isa(u, MyFruit.Kiwi); it.body(<<val);
-            }
-            return;
+        info := type_info(U);
+        // if type == {
+        // case MyFruit.Pineapple; val := NU.isa(u, MyFruit.Pineapple); it.body(<<val);
+        // case MyFruit.Mango; val := NU.isa(u, MyFruit.Mango); it.body(<<val);
+        // case MyFruit.Kiwi; val := NU.isa(u, MyFruit.Kiwi); it.body(<<val);
+        // }
+        print_to_builder(*builder, "    if type == {\n");
+        for info.members {
+            if !(it.flags & .CONSTANT) || it.name ==  "Bytes" || it.name ==  "Tag" || it.name ==  "value_types" continue;
+            print_to_builder(*builder, "    case u.%1; val := NU.isa(u, u.%1); body(<<val);\n", it.name);
         }
+        print_to_builder(*builder, "    }\n");
+
+        return builder_to_string(*builder);
     }
 }
 

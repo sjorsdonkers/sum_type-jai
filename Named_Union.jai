@@ -28,7 +28,7 @@ Named_Union :: struct ($variants: ..Variant) {
         //     _mango: Mango;
         //     _kiwi: Kiwi;
         // };
-        print_to_builder(*builder, "    Bytes :: union {\n");
+        print_to_builder(*builder, "    Bytes :: union {\n"); // TODO prefix _
         for variants { print_to_builder(*builder, "        _%: %;\n", to_lower_copy_new(it.name), it.name); }
         print_to_builder(*builder, "    };\n");
 
