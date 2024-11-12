@@ -22,26 +22,20 @@ main :: () {
         (k: MyFruit.Kiwi)      { print("My iwi,  %\n", k); },
     );
 
-    opt : Option(u8);
-    set(*opt, Option(u8).Some.{5});
-    match(opt,
-        (s: Option(u8).Some) { print("Some: %\n", s); },
-        (n: Option(u8).None) { print("None\n"); },
-    );
+    opt :Option(s64)= some(5);
+    if is_some(opt) { print("Some: %\n", <<unwrap(opt)); }
+    else { print("None\n"); }
 
     out := oh_nose(false);
     match(out,
         (o: Result(s8, string).Ok)   { print("Ok: %\n", o); },
-        (e: Result(s8, string).Else) { print("Else: %\n", e); },
+        (e: Result(s8, string).Other) { print("Other: %\n", e); },
     );
 }
 //NoseReturn :: Result(Option(s32), string); // Nested requires #insert,stallable. Or Option(s32) to have previously been generated
 oh_nose :: (yes: bool) -> Result(s8, string) {
-    Res :: Result(s8, string);
-    output: Res;
-    if yes { set(*output, Res.Ok.{8}); }
-    else { set(*output, Res.Else.{"Oh nose!"}); }
-    return output;
+    if yes return ok(cast(s8) 8, string);
+    return other(s8, "Oh nose!");
 }
 
 
