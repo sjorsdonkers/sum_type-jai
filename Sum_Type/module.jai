@@ -43,34 +43,34 @@ Sum_Type :: struct ($variants: ..Variant) {
             }
         }
 
-        // value_types :: Type.[Pineapple, Mango, Kiwi];
-        print_to_builder(*builder, "value_types :: Type.[%", variants[0].name);
+        // _value_types :: Type.[Pineapple, Mango, Kiwi];
+        print_to_builder(*builder, "_value_types :: Type.[%", variants[0].name);
         for 1..variants.count-1 { print_to_builder(*builder, ", %", variants[it].name); }
         print_to_builder(*builder, "];\n");
 
-        // Bytes :: union {
-        //     _pineapple: Pineapple;
-        //     _mango: Mango;
-        //     _kiwi: Kiwi;
+        // _Bytes :: union {
+        //     pineapple: Pineapple;
+        //     mango: Mango;
+        //     kiwi: Kiwi;
         // };
-        print_to_builder(*builder, "Bytes :: union {\n"); // TODO prefix _
-        for variants { print_to_builder(*builder, "    _%: %;\n", to_lower_copy_new(it.name), it.name); }
+        print_to_builder(*builder, "_Bytes :: union {\n");
+        for variants { print_to_builder(*builder, "    %: %;\n", to_lower_copy_new(it.name), it.name); }
         print_to_builder(*builder, "};\n");
 
-        // Tag :: enum u8 {
+        // _Tag :: enum u8 {
         //     PINEAPPLE :: 0;
         //     MANGO :: 1;
         //     KIWI :: 2;
         // }
-        print_to_builder(*builder, "Tag :: enum u8 {\n");
+        print_to_builder(*builder, "_Tag :: enum u8 {\n");
         for variants { print_to_builder(*builder, "    % :: %;\n", to_upper_copy_new(it.name), it_index); }
         print_to_builder(*builder, "}\n");
 
         return builder_to_string(*builder);
     }
-    bytes: Bytes;
-    tag: Tag; // 'tag' tells us the type of the value contained in 'bytes'
-              // It must be set to some index in 'value_types'
+    _bytes: _Bytes;
+    _tag: _Tag; // '_tag' tells us the type of the value contained in '_bytes'
+              // It must be set to some index in '_value_types'
               // It is an enum to make as it prints nices and #complete can be used on a switch statement
               // TODO dynamically make u8 bigger if needed
 }
@@ -82,9 +82,9 @@ Variant :: struct {
 
 // set(*u, value): Set the type tag of 'u' to type_of(value), and copy 'value' into u's storage.
 set :: (u: *Sum_Type, value: $T) {
-    target_tag :: #run union_index(u.value_types, T);
-    u.tag = target_tag;
-    pointer := cast(*T) *u.bytes;
+    target_tag :: #run union_index(u._value_types, T);
+    u._tag = target_tag;
+    pointer := cast(*T) *u._bytes;
     <<pointer = value;
 }
 
@@ -93,8 +93,8 @@ isa :: (u: Sum_Type, $T: Type) -> *T {
     // If the tag is T, return appropriately casted memory.
     // Otherwise, return null.
     // This is equivalent to true or false if used in an 'if' statement.
-    expected_tag :: #run union_index(u.value_types, T);
-    if u.tag == expected_tag  return cast(*T) *u.bytes;
+    expected_tag :: #run union_index(u._value_types, T);
+    if u._tag == expected_tag  return cast(*T) *u._bytes;
     return null;
 }
 
@@ -105,7 +105,7 @@ union_index :: ($types: []Type, $T: Type) -> u8 {
 }
 
 union_type :: (u: Sum_Type) -> Type {
-    return u.value_types[u.tag];
+    return u._value_types[u._tag];
 }
 
 // Example usage:
@@ -147,7 +147,7 @@ match :: (u: $U/Sum_Type, case_procs: ..Any) { // TODO find a better type than A
         // }
         print_to_builder(*builder, "if u_type == {\n");
         for info.members {
-            if !(it.flags & .CONSTANT) || it.name ==  "Bytes" || it.name ==  "Tag" || it.name ==  "value_types" continue;
+            if !(it.flags & .CONSTANT) || it.name ==  "_Bytes" || it.name ==  "_Tag" || it.name ==  "_value_types" continue;
 
             print_to_builder(*builder, "case u.%1;\n", it.name);
             print_to_builder(*builder, "    val := isa(u, u.%1);\n", it.name);
