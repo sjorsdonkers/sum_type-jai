@@ -32,12 +32,13 @@ main :: () {
         (e: Result(s8, string).Other) { print("Other: %\n", e); },
     );
 }
-//NoseReturn :: Result(Option(s32), string); // Nested requires #insert,stallable. Or Option(s32) to have previously been generated
+
 oh_nose :: (yes: bool) -> Result(s8, string) {
     if yes return ok(cast(s8) 8, string);
     return other(s8, "Oh nose!");
 }
 
+//NestedUnion :: Result(Option(s32), string); // Nested requires #insert,stallable. Or Option(s32) to have previously been generated
 
 NU :: #import, file "../Named_Union/module.jai";
 #poke_name NU MyStruct; // To avoid this I think we need $call := #caller_code and #insert,scope(call) to work on structs (Named_Union)

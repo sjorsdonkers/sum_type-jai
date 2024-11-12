@@ -1,6 +1,6 @@
 # Named_Union-jai
 
-Sum-types and pattern matching for Jai.  
+Sum-types and pattern matching for Jai using `Named_Union` and `match`.  
 Also includes `Option` and `Result` types.
 
 Differences with `Tagged_Union`:
@@ -9,7 +9,30 @@ This enables variants of the same types to be distinguished making it possible t
 - In a Named_Union the tag is stored as a single byte instead of a pointer.
 - Pattern matching is implemented for Named_Unions using the `match` procedure.
 
+Example showing `Option` and `Result` types:
+```jai
+main :: () {
+    opt :Option(s64)= some(5);
+    if is_some(opt) { print("Some: %\n", <<unwrap(opt)); }
+    else { print("None\n"); }
 
+    out :Result(s8, string)= oh_nose(false);
+    match(out,
+        (o: Result(s8, string).Ok)   { print("Ok: %\n", o); },
+        (e: Result(s8, string).Other) { print("Other: %\n", e); },
+    );
+}
+
+oh_nose :: (yes: bool) -> Result(s8, string) {
+    if yes return ok(cast(s8) 3, string);
+    return other(s8, "Oh nose!");
+}
+
+#import "Named_Union";
+#import "Basic";
+```
+
+Example showing a user-defined `Named_Union`:
 ```jai
 main :: () {
     MyFruit :: Named_Union (
@@ -33,8 +56,8 @@ MyStruct :: struct {
     a: s32;
     b: bool;
 }
-NU :: #import, file "../Named_Union.jai";
+NU :: #import "Named_Union";
 #poke_name NU MyStruct;
-#import, file "../Named_Union.jai";
+#import "Named_Union";
 #import "Basic";
 ```
