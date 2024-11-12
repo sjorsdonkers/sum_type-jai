@@ -3,18 +3,18 @@ Variant :: struct {
     type: Type;
 }
 
-Named_Union :: struct ($variants: ..Variant, call := #caller_code) {
-    #insert,scope(call) -> string {
+Named_Union :: struct ($variants: ..Variant) {
+    #insert -> string {
         builder: String_Builder;
 
         // Pineapple :: struct { value: u8; }
         // Mango :: struct { value: string; }
         // Kiwi :: #type,distinct MyStruct;
         for variants {
-            if (cast(*Type_Info)(it.type)).type == .STRUCT { // TODO handle VARIANT
-                print_to_builder(*builder, "    % :: #type,distinct %;\n", it.name, it.type);
-            } else {
-                print_to_builder(*builder, "    % :: struct { value: %; }\n", it.name, it.type);
+            if (cast(*Type_Info)(it.type)).type == {
+            case .STRUCT; print_to_builder(*builder, "    % :: #type,distinct %;\n", it.name, it.type);
+            case .VARIANT; assert(false, "VARIANT not supported yet in Named_Union");
+            case; print_to_builder(*builder, "    % :: struct { value: %; }\n", it.name, it.type);
             }
         }
 
@@ -43,7 +43,7 @@ Named_Union :: struct ($variants: ..Variant, call := #caller_code) {
 
         return builder_to_string(*builder);
     }
-    bytes : Bytes;
+    bytes: Bytes;
     tag: Tag; // 'tag' tells us the type of the value contained in 'bytes'
               // It must be set to some index in 'value_types'
               // It is an enum to make as it prints nices and #complete can be used on a switch statement
