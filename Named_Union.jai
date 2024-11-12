@@ -12,14 +12,14 @@ Named_Union :: struct ($variants: ..Variant) {
         // Kiwi :: #type,distinct MyStruct;
         for variants {
             if (cast(*Type_Info)(it.type)).type == {
-            case .STRUCT; print_to_builder(*builder, "    % :: #type,distinct %;\n", it.name, it.type);
+            case .STRUCT; print_to_builder(*builder, "% :: #type,distinct %;\n", it.name, it.type);
             case .VARIANT; assert(false, "VARIANT not supported yet in Named_Union");
-            case; print_to_builder(*builder, "    % :: struct { value: %; }\n", it.name, it.type);
+            case; print_to_builder(*builder, "% :: struct { value: %; }\n", it.name, it.type);
             }
         }
 
         // value_types :: Type.[Pineapple, Mango, Kiwi];
-        print_to_builder(*builder, "    value_types :: Type.[%", variants[0].name);
+        print_to_builder(*builder, "value_types :: Type.[%", variants[0].name);
         for 1..variants.count-1 { print_to_builder(*builder, ", %", variants[it].name); }
         print_to_builder(*builder, "];\n");
 
@@ -28,18 +28,18 @@ Named_Union :: struct ($variants: ..Variant) {
         //     _mango: Mango;
         //     _kiwi: Kiwi;
         // };
-        print_to_builder(*builder, "    Bytes :: union {\n"); // TODO prefix _
-        for variants { print_to_builder(*builder, "        _%: %;\n", to_lower_copy_new(it.name), it.name); }
-        print_to_builder(*builder, "    };\n");
+        print_to_builder(*builder, "Bytes :: union {\n"); // TODO prefix _
+        for variants { print_to_builder(*builder, "    _%: %;\n", to_lower_copy_new(it.name), it.name); }
+        print_to_builder(*builder, "};\n");
 
         // Tag :: enum u8 {
         //     PINEAPPLE :: 0;
         //     MANGO :: 1;
         //     KIWI :: 2;
         // }
-        print_to_builder(*builder, "    Tag :: enum u8 {\n");
-        for variants { print_to_builder(*builder, "        % :: %;\n", to_upper_copy_new(it.name), it_index); }
-        print_to_builder(*builder, "    }\n");
+        print_to_builder(*builder, "Tag :: enum u8 {\n");
+        for variants { print_to_builder(*builder, "    % :: %;\n", to_upper_copy_new(it.name), it_index); }
+        print_to_builder(*builder, "}\n");
 
         return builder_to_string(*builder);
     }
@@ -76,6 +76,43 @@ union_index :: ($types: []Type, $T: Type) -> u8 {
 
 union_type :: (u: Named_Union) -> Type {
     return u.value_types[u.tag];
+}
+
+match :: (u: $U/Named_Union, case_procs: ..Any) { // TODO find a better type than Any for the proc pointers
+    u_type := union_type(u);
+    u_info := cast(*Type_Info) u_type;
+    case_proc : Any;
+    for case_procs {
+        assert(it.type.type == .PROCEDURE, "case_proc must be a procedure");
+        proc_info := cast(*Type_Info_Procedure)(it.type);
+        assert(proc_info.argument_types.count == 1, "case_proc may only have one argument"); // TODO 0 for default case
+        assert(proc_info.return_types.count == 0, "case_proc may not have a return value yet"); // TODO
+        if u_info == proc_info.argument_types[0] { case_proc = it; break; }
+    }
+    assert(case_proc.value_pointer != null, "No matching case procedure found for type %", u_type);
+
+    #insert -> string {
+        builder: String_Builder;
+
+        info := type_info(U);
+        // if u_type == {
+        // case u.Pineapple; val := isa(u, u.Pineapple); proc := <<cast(*#type (u.Pineapple)->()) case_proc.value_pointer; proc(<<val);
+        // case u.Mango;     val := isa(u, u.Mango);     proc := <<cast(*#type (u.Mango)->())     case_proc.value_pointer; proc(<<val);
+        // case u.Kiwi;      val := isa(u, u.Kiwi);      proc := <<cast(*#type (u.Kiwi)->())      case_proc.value_pointer; proc(<<val);
+        // }
+        print_to_builder(*builder, "if u_type == {\n");
+        for info.members {
+            if !(it.flags & .CONSTANT) || it.name ==  "Bytes" || it.name ==  "Tag" || it.name ==  "value_types" continue;
+
+            print_to_builder(*builder, "case u.%1;\n", it.name);
+            print_to_builder(*builder, "    val := isa(u, u.%1);\n", it.name);
+            print_to_builder(*builder, "    proc := <<cast(*#type (u.%1)->()) case_proc.value_pointer;\n", it.name);
+            print_to_builder(*builder, "    proc(<<val);\n");
+        }
+        print_to_builder(*builder, "}\n");
+
+        return builder_to_string(*builder);
+    }
 }
 
 #scope_file
