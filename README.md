@@ -1,4 +1,4 @@
-# Named_Union-jai
+# Named_Union
 
 Sum-types and pattern matching for Jai using `Named_Union` and `match`.  
 Also includes `Option` and `Result` types.
