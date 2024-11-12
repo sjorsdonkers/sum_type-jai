@@ -39,7 +39,7 @@ oh_nose :: (yes: bool) -> Result(s8, string) {
 }
 
 
-NU :: #import, file "../Named_Union.jai";
+NU :: #import, file "../Named_Union/module.jai";
 #poke_name NU MyStruct; // To avoid this I think we need $call := #caller_code and #insert,scope(call) to work on structs (Named_Union)
-#import, file "../Named_Union.jai";
+#import, file "../Named_Union/module.jai";
 #import "Basic";

@@ -10,7 +10,7 @@
 //       (s: .Some) { print("Some: %\n", s); },
 //       (n: .None) { print("None\n"); },
 //   );
-// - Single line initialization would be nice, especially to return from a function or call a function
+//   This would also enable single line initialization, usefull to return from a function or when calling a function
 //   fruitsicle :MyFruit= .Pineapple.{5};
 
 // LIMITATIONS:
@@ -19,71 +19,8 @@
 // - Missing case procedures are only detected at compile time
 // - Tag is always 1 byte, don't make a Named_Union with more than 255 variants..
 
-// This is meant for optional data, generally in structs only not to indicate state or errors.
-// Do not use this as a procedure return type to indicate None left or so, use Result
-Option :: struct (T: Type) {
-    using #as optional: Named_Union(
-        .{"None", void},
-        .{"Some", T},
-    );
-}
-some :: (value: $V) -> Option(V) {
-    opt : Option(V);
-    set(*opt, Option(V).Some.{value});
-    return opt;
-}
-none :: ($V: Type) -> Option(V) {
-    opt : Option(V);
-    set(*opt, Option(V).None.{});
-    return opt;
-}
-is_some :: (option: Option($T)) -> bool {
-    return option.tag == .SOME;
-}
-is_none :: (option: Option($T)) -> bool {
-    return option.tag == .NONE;
-}
-unwrap :: (option: Option($T)) -> *T {
-    assert(option.tag == option.Tag.SOME, "Attempt to get value of a None Option");
-    return cast(*T) *option.bytes._some;
-}
-
-// Meant as function return type to indicate Ok success or Other (error, end of something etc.)
-Result :: struct (Ok: Type, Other: Type) {
-    using #as result: Named_Union(
-        .{"Other", Other},
-        .{"Ok", Ok},
-    );
-}
-ok :: (value: $Ok, $Other: Type) -> Result(Ok, Other) {
-    res : Result(Ok, Other);
-    set(*res, Result(Ok, Other).Ok.{value});
-    return res;
-}
-other :: ($Ok: Type, value: $Other) -> Result(Ok, Other) {
-    res : Result(Ok, Other);
-    set(*res, Result(Ok, Other).Other.{value});
-    return res;
-}
-is_ok :: (result: Result($Ok, $Other)) -> bool {
-    return result.tag == .OK;
-}
-is_other :: (result: Result($Ok, $Other)) -> bool {
-    return result.tag == .OTHER;
-}
-unwrap :: (result: Result($Ok, $Other)) -> *Ok {
-    assert(result.tag == result.Tag.OK, "Attempt to get Ok value of a Other Result");
-    return cast(*T) *result.bytes._ok;
-}
-unwrap_other :: (result: Result($Ok, $Other)) -> *Other {
-    assert(result.tag == result.Tag.OTHER, "Attempt to get Other value of a Ok Result");
-    return cast(*T) *result.bytes._other;
-}
-
-Variant :: struct {
-    name: string;
-    type: Type;
-}
+#load "option.jai";
+#load "result.jai";
 
 // Define a Named_Union by providing the names and types of its variants.
 // MyFruit :: Named_Union (
@@ -136,6 +73,11 @@ Named_Union :: struct ($variants: ..Variant) {
               // It must be set to some index in 'value_types'
               // It is an enum to make as it prints nices and #complete can be used on a switch statement
               // TODO dynamically make u8 bigger if needed
+}
+// Helper struct to define the variants of a Named_Union
+Variant :: struct {
+    name: string;
+    type: Type;
 }
 
 // set(*u, value): Set the type tag of 'u' to type_of(value), and copy 'value' into u's storage.
