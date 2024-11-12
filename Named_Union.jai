@@ -1,8 +1,23 @@
+// This is meant for optional data, generally in structs only not to indicate state or errors.
+// Do not use this as a procedure return type to indicate None left or so, use Result
+Option :: struct (T: Type) {
+    using #as optional: Named_Union(
+        .{"None", void},
+        .{"Some", T},
+    );
+}
+
+Result :: struct (Ok: Type, Else: Type) {
+    using #as result: Named_Union(
+        .{"Else", Else},
+        .{"Ok", Ok},
+    );
+}
+
 Variant :: struct {
     name: string;
     type: Type;
 }
-
 Named_Union :: struct ($variants: ..Variant) {
     #insert -> string {
         builder: String_Builder;
@@ -95,6 +110,15 @@ match :: (u: $U/Named_Union, case_procs: ..Any) { // TODO find a better type tha
         builder: String_Builder;
 
         info := type_info(U);
+        for info.members { // To make a polymorphic Named_Union, a user may define a struct with a member using #as Named_Union(..)
+            if it.flags & .AS {
+                assert(it.type.type == .STRUCT, "Named_Union must be a struct");
+                info = cast(*Type_Info_Struct) it.type; // TODO handle .VARIANT
+                assert(info.name == "Named_Union");
+                break;
+            }
+        }
+
         // if u_type == {
         // case u.Pineapple; val := isa(u, u.Pineapple); proc := <<cast(*#type (u.Pineapple)->()) case_proc.value_pointer; proc(<<val);
         // case u.Mango;     val := isa(u, u.Mango);     proc := <<cast(*#type (u.Mango)->())     case_proc.value_pointer; proc(<<val);
