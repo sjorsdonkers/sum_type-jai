@@ -32,34 +32,41 @@ main :: () {
     }
 
     match(a,
-        .{MyFruit.Pineapple, (asd: Any) { print("My pina, %\n", asd); }},
-        .{MyFruit.Mango, (asd: Any) { print("My ango, %\n", asd); }},
-        .{MyFruit.Kiwi, (asd: Any) { print("My iwi, %\n", asd); }},
+        (p: MyFruit.Pineapple) { print("My pina, %\n", p); },
+        (m: MyFruit.Mango)     { print("My ango, %\n", m); },
+        (k: MyFruit.Kiwi)      { print("My iwi,  %\n", k); },
     );
 }
 
-Casu :: struct {
-    tag: Type;
-    body: (Any) -> ();
-}
+match :: (u: $U/NU.Named_Union, case_procs: ..Any) {
+    u_type := NU.union_type(u);
+    u_info := cast(*Type_Info) u_type;
+    case_proc : Any;
+    for case_procs {
+        assert(it.type.type == .PROCEDURE, "case_proc must be a procedure");
+        proc_info := cast(*Type_Info_Procedure)(it.type);
+        assert(proc_info.argument_types.count == 1, "case_proc may only have one argument"); // TODO 0 for default case
+        assert(proc_info.return_types.count == 0, "case_proc may not have a return value yet"); // TODO
+        if u_info == proc_info.argument_types[0] { case_proc = it; break; }
+    }
 
-match :: (u: $U/NU.Named_Union, cases: ..Casu) {
-    type := NU.union_type(u);
-    body : (Any) -> ();
-    for cases if type == it.tag body = it.body;
     #insert -> string {
         builder: String_Builder;
 
         info := type_info(U);
-        // if type == {
-        // case MyFruit.Pineapple; val := NU.isa(u, MyFruit.Pineapple); it.body(<<val);
-        // case MyFruit.Mango; val := NU.isa(u, MyFruit.Mango); it.body(<<val);
-        // case MyFruit.Kiwi; val := NU.isa(u, MyFruit.Kiwi); it.body(<<val);
+        // if u_type == {
+        // case u.Pineapple; val := NU.isa(u, u.Pineapple); proc := <<cast(*#type (u.Pineapple)->()) case_proc.value_pointer; proc(<<val);
+        // case u.Mango;     val := NU.isa(u, u.Mango);     proc := <<cast(*#type (u.Mango)->())     case_proc.value_pointer; proc(<<val);
+        // case u.Kiwi;      val := NU.isa(u, u.Kiwi);      proc := <<cast(*#type (u.Kiwi)->())      case_proc.value_pointer; proc(<<val);
         // }
-        print_to_builder(*builder, "    if type == {\n");
+        print_to_builder(*builder, "    if u_type == {\n");
         for info.members {
             if !(it.flags & .CONSTANT) || it.name ==  "Bytes" || it.name ==  "Tag" || it.name ==  "value_types" continue;
-            print_to_builder(*builder, "    case u.%1; val := NU.isa(u, u.%1); body(<<val);\n", it.name);
+
+            print_to_builder(*builder, "    case u.%1;\n", it.name);
+            print_to_builder(*builder, "        val := NU.isa(u, u.%1);\n", it.name);
+            print_to_builder(*builder, "        proc := <<cast(*#type (u.%1)->()) case_proc.value_pointer;\n", it.name);
+            print_to_builder(*builder, "        proc(<<val);\n");
         }
         print_to_builder(*builder, "    }\n");
 
