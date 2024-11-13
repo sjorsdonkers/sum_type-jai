@@ -12,6 +12,8 @@
 //   );
 //   This would also enable single line initialization, usefull to return from a function or when calling a function
 //   fruitsicle :MyFruit= .Pineapple.{5};
+// - Backward flowing automatic type deduction would clean up a lot of the excessive type annotions
+// - Automatic return type deduction for procedures would be great
 
 // LIMITATIONS:
 // - Nested Sum_Types require the nested type to have been generated it in advance
@@ -114,14 +116,14 @@ union_type :: (u: Sum_Type) -> Type {
 //     (m: MyFruit.Mango)     { print("My ango, %\n", m); },
 //     (k: MyFruit.Kiwi)      { print("My iwi,  %\n", k); },
 // );
-match :: (u: $U/Sum_Type, case_procs: ..Any) { // TODO find a better type than Any for the proc pointers
+match :: (u: $U/Sum_Type, capture: $Env, case_procs: ..Any) { // TODO find a better type than Any for the proc pointers
     u_type := union_type(u);
     u_info := cast(*Type_Info) u_type;
     case_proc : Any;
     for case_procs {
         assert(it.type.type == .PROCEDURE, "case_proc must be a procedure");
         proc_info := cast(*Type_Info_Procedure)(it.type);
-        assert(proc_info.argument_types.count == 1, "case_proc may only have one argument"); // TODO 0 for default case
+        // assert(proc_info.argument_types.count == 1, "case_proc may only have one argument"); // TODO 0 for default case
         assert(proc_info.return_types.count == 0, "case_proc may not have a return value yet"); // TODO
         if u_info == proc_info.argument_types[0] { case_proc = it; break; }
     }
@@ -151,8 +153,8 @@ match :: (u: $U/Sum_Type, case_procs: ..Any) { // TODO find a better type than A
 
             print_to_builder(*builder, "case u.%1;\n", it.name);
             print_to_builder(*builder, "    val := isa(u, u.%1);\n", it.name);
-            print_to_builder(*builder, "    proc := <<cast(*#type (u.%1)->()) case_proc.value_pointer;\n", it.name);
-            print_to_builder(*builder, "    proc(<<val);\n");
+            print_to_builder(*builder, "    proc := <<cast(*#type (u.%1, %2)->()) case_proc.value_pointer;\n", it.name, Env);
+            print_to_builder(*builder, "    proc(<<val, capture);\n");
         }
         print_to_builder(*builder, "}\n");
 

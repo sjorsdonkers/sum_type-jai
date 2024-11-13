@@ -16,10 +16,10 @@ main :: () {
 
     set(*fruitsicle, MyFruit.Mango.{"Hello"});
     set(*fruitsicle, MyFruit.Kiwi.{34, true});
-    match(fruitsicle,
-        (p: MyFruit.Pineapple) { print("My pina, %\n", p); },
-        (m: MyFruit.Mango)     { print("My ango, %\n", m); },
-        (k: MyFruit.Kiwi)      { print("My iwi,  %\n", k); },
+    match(fruitsicle, 5,
+        (p: MyFruit.Pineapple, e:s64) { print("My pina, %\n", p); },
+        (m: MyFruit.Mango, e:s64)     { print("My ango, %\n", m); },
+        (k: MyFruit.Kiwi, e:s64)      { print("My iwi,  %\n", k); },
     );
 
     opt :Option(s64)= some(5);
@@ -27,10 +27,10 @@ main :: () {
     else { print("None\n"); }
 
     out := oh_nose(false);
-    match(out,
-        (o: Result(s8, string).Ok)   { print("Ok: %\n", o); },
-        (e: Result(s8, string).Other) { print("Other: %\n", e); },
-    );
+    // match(out,
+    //     (o: Result(s8, string).Ok)   { print("Ok: %\n", o); },
+    //     (e: Result(s8, string).Other) { print("Other: %\n", e); },
+    // );
 }
 
 oh_nose :: (yes: bool) -> Result(s8, string) {
