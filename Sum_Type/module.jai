@@ -30,7 +30,7 @@
 // - Nested Sum_Types require the nested type to have been generated it in advance
 // - Type-variants of Sum_Types and Sum_Types containing user-defined type-variants may not work yet
 // - Tag is always 1 byte, don't make a Sum_Type with more than 255 variants..
-// - Match currently just supports 1 return value
+// - Match procedure currently just supports 1 return value
 
 #load "option.jai";
 #load "result.jai";
