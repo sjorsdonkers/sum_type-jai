@@ -41,14 +41,14 @@
 //     .{"Mango", string},
 //     .{"Kiwi", MyStruct},
 // );
-Sum_Type :: struct ($variants: ..Variant) {
+Sum_Type :: struct ($_variants: ..Variant) {
     #insert -> string {
         builder: String_Builder;
 
         // Pineapple :: struct { value: u8; }
         // Mango :: struct { value: string; }
         // Kiwi :: #type,distinct MyStruct;
-        for variants {
+        for _variants {
             if (cast(*Type_Info)(it.type)).type == {
             case .STRUCT; print_to_builder(*builder, "% :: #type,distinct %;\n", it.name, it.type);
             case .VARIANT; assert(false, "VARIANT not supported yet in Sum_Type");
@@ -57,8 +57,9 @@ Sum_Type :: struct ($variants: ..Variant) {
         }
 
         // _value_types :: Type.[Pineapple, Mango, Kiwi];
-        print_to_builder(*builder, "_value_types :: Type.[%", variants[0].name);
-        for 1..variants.count-1 { print_to_builder(*builder, ", %", variants[it].name); }
+        // _value_types is the same as _variants, but using a native type which allows us to process them at compile-time (bug reported)
+        print_to_builder(*builder, "_value_types :: Type.[%", _variants[0].name);
+        for 1.._variants.count-1 { print_to_builder(*builder, ", %", _variants[it].name); }
         print_to_builder(*builder, "];\n");
 
         // _Bytes :: union {
@@ -67,7 +68,7 @@ Sum_Type :: struct ($variants: ..Variant) {
         //     kiwi: Kiwi;
         // };
         print_to_builder(*builder, "_Bytes :: union {\n");
-        for variants { print_to_builder(*builder, "    %: %;\n", to_lower_copy_new(it.name), it.name); }
+        for _variants { print_to_builder(*builder, "    %: %;\n", to_lower_copy_new(it.name), it.name); }
         print_to_builder(*builder, "};\n");
 
         // _Tag :: enum u8 {
@@ -76,7 +77,7 @@ Sum_Type :: struct ($variants: ..Variant) {
         //     KIWI :: 2;
         // }
         print_to_builder(*builder, "_Tag :: enum u8 {\n");
-        for variants { print_to_builder(*builder, "    % :: %;\n", to_upper_copy_new(it.name), it_index); }
+        for _variants { print_to_builder(*builder, "    % :: %;\n", to_upper_copy_new(it.name), it_index); }
         print_to_builder(*builder, "}\n");
 
         return builder_to_string(*builder);
