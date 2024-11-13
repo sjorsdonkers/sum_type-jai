@@ -13,7 +13,7 @@
 //   This would also enable single line initialization, usefull to return from a function or when calling a function
 //   fruitsicle :MyFruit= .Pineapple.{5};
 // - Backward flowing automatic type deduction would clean up a lot of the excessive type annotions
-//   Typed arguments for `=>` procedures, would greatly enhance the match syntax:
+// - Typed arguments for `=>` procedures, would greatly enhance the match syntax:
 //   Now:
 //   s := match(fruitsicle,
 //       (k: MyFruit.Kiwi) -> string { return tprint("My iwi,  %", k); },
