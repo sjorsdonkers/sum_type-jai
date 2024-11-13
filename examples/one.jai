@@ -14,13 +14,22 @@ main :: () {
     pinapple_type := union_type(fruitsicle);
     if pinapple { print("fruitsicle: % as %.%\n", fruitsicle, pinapple_type, << pinapple); }
 
-    set(*fruitsicle, MyFruit.Mango.{"Hello"});
     set(*fruitsicle, MyFruit.Kiwi.{34, true});
     match(fruitsicle,
         (p: MyFruit.Pineapple) { print("My pina, %\n", p); },
-        (m: MyFruit.Mango)     { print("My ango, %\n", m); },
-        (k: MyFruit.Kiwi)      { print("My iwi,  %\n", k); },
+        (m: MyFruit.Mango) { print("My ango, %\n", m); },
+        (k: MyFruit.Kiwi) { print("My iwi,  %\n", k); },
     );
+
+    set(*fruitsicle, MyFruit.Mango.{"Hello"});
+    output: string;
+    match(fruitsicle,
+        (p: MyFruit.Pineapple, out:*string) { <<out = tprint("My pina, %\n", p); },
+        (m: MyFruit.Mango,     out:*string) { <<out = tprint("My ango, %\n", m); },
+        (k: MyFruit.Kiwi,      out:*string) { <<out = tprint("My iwi,  %\n", k); },
+        capture=*output
+    );
+    print(output);
 
     opt :Option(s64)= some(5);
     if is_some(opt) { print("Some: %\n", <<unwrap(opt)); }
