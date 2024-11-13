@@ -21,7 +21,7 @@ main :: () {
     fruitsicle : MyFruit;
     set(*fruitsicle, MyFruit.Pineapple.{5});
     set(*fruitsicle, MyFruit.Mango.{"Hello"});
-    set(*fruitsicle, MyFruit.Kiwi.{34, true});
+    set(*fruitsicle, MyFruit.Kiwi.{.{34, true}});
 
     match(fruitsicle,
         (p: MyFruit.Pineapple) { print("My pina, %\n", p); },

@@ -7,8 +7,8 @@
 //   Option :: sumtype (T: Type) {None :: void, Some :: T}
 // - Type deduction for arguments similar to enums' dot notation.
 //   match(opt,
-//       (s: .Some) { print("Some: %\n", s); },
-//       (n: .None) { print("None\n"); },
+//       (s: .Some) { print("Some: %\n", s); },     // NOW (s: Option(s64).Some)
+//       (n: .None) { print("None\n"); },           // NOW (n: Option(s64).None)
 //   );
 //   This would also enable single line initialization, usefull to return from a function or when calling a function
 //   fruitsicle :MyFruit= .Pineapple.{5};
@@ -28,9 +28,9 @@
 
 // LIMITATIONS:
 // - Nested Sum_Types require the nested type to have been generated it in advance
-// - Type-variants of Sum_Types and Sum_Types containing user-defined type-variants may not work yet
 // - Tag is always 1 byte, don't make a Sum_Type with more than 255 variants..
 // - Match procedure currently just supports 1 return value
+// - Currently it is not possible yet to define a default procedure for match
 
 #load "option.jai";
 #load "result.jai";
@@ -47,16 +47,10 @@ Sum_Type :: struct ($_variants: ..Variant) {
 
         // Pineapple :: struct { value: u8; }
         // Mango :: struct { value: string; }
-        // Kiwi :: #type,distinct MyStruct;
-        for _variants {
-            if (cast(*Type_Info)(it.type)).type == {
-            case .STRUCT; print_to_builder(*builder, "% :: #type,distinct %;\n", it.name, it.type);
-            case .VARIANT; assert(false, "VARIANT not supported yet in Sum_Type");
-            case; print_to_builder(*builder, "% :: struct { value: %; }\n", it.name, it.type);
-            }
-        }
+        // Kiwi :: struct { value: MyStruct; }
+        for _variants { print_to_builder(*builder, "% :: struct { value: %; }\n", it.name, it.type); }
 
-        // _value_types :: Type.[Pineapple, Mango, Kiwi];
+        // _value_types :: Type.[Pineapple, Mango, Kiwi]; // TODO Remove when possible
         // _value_types is the same as _variants, but using a native type which allows us to process them at compile-time (bug reported)
         print_to_builder(*builder, "_value_types :: Type.[%", _variants[0].name);
         for 1.._variants.count-1 { print_to_builder(*builder, ", %", _variants[it].name); }
@@ -83,10 +77,10 @@ Sum_Type :: struct ($_variants: ..Variant) {
         return builder_to_string(*builder);
     }
     _bytes: _Bytes;
-    _tag: _Tag; // '_tag' tells us the type of the value contained in '_bytes'
-              // It must be set to some index in '_value_types'
-              // It is an enum to make as it prints nices and #complete can be used on a switch statement
-              // TODO dynamically make u8 bigger if needed
+    _tag:   _Tag; // '_tag' tells us the type of the value contained in '_bytes'
+                  // It must be set to some index in '_value_types'
+                  // It is an enum to make as it prints nices and #complete can be used on a switch statement
+                  // TODO dynamically make u8 bigger if needed
 }
 // Helper struct to define the variants of a Sum_Type
 Variant :: struct {

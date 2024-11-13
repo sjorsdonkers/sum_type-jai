@@ -16,7 +16,7 @@ main :: () {
     if pinapple { print("fruitsicle: % as %.%\n", fruitsicle, pinapple_type, << pinapple); }
 
     // Basic match statement
-    set(*fruitsicle, MyFruit.Kiwi.{34, true});
+    set(*fruitsicle, MyFruit.Kiwi.{.{34, true}});
     match(fruitsicle,
         (p: MyFruit.Pineapple) { print("My pina, %\n", p); },
         (m: MyFruit.Mango) { print("My ango, %\n", m); },
@@ -24,7 +24,7 @@ main :: () {
     );
 
     // Match with return value
-    set(*fruitsicle, MyFruit.Kiwi.{4, false});
+    set(*fruitsicle, MyFruit.Kiwi.{.{4, false}});
     s := match(fruitsicle,
         (p: MyFruit.Pineapple) -> string { return tprint("My pina, %", p); },
         (m: MyFruit.Mango) -> string { return tprint("My ango, %", m); },
