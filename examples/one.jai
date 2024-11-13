@@ -14,23 +14,32 @@ main :: () {
     pinapple_type := union_type(fruitsicle);
     if pinapple { print("fruitsicle: % as %.%\n", fruitsicle, pinapple_type, << pinapple); }
 
-    set(*fruitsicle, MyFruit.Mango.{"Hello"});
     set(*fruitsicle, MyFruit.Kiwi.{34, true});
-    match(fruitsicle, 5,
-        (p: MyFruit.Pineapple, e:s64) { print("My pina, %\n", p); },
-        (m: MyFruit.Mango, e:s64)     { print("My ango, %\n", m); },
-        (k: MyFruit.Kiwi, e:s64)      { print("My iwi,  %\n", k); },
+    match(fruitsicle,
+        (p: MyFruit.Pineapple) { print("My pina, %\n", p); },
+        (m: MyFruit.Mango) { print("My ango, %\n", m); },
+        (k: MyFruit.Kiwi) { print("My iwi,  %\n", k); },
     );
+
+    set(*fruitsicle, MyFruit.Mango.{"Hello"});
+    output: string;
+    match(fruitsicle,
+        (p: MyFruit.Pineapple, out:*string) { <<out = tprint("My pina, %\n", p); },
+        (m: MyFruit.Mango,     out:*string) { <<out = tprint("My ango, %\n", m); },
+        (k: MyFruit.Kiwi,      out:*string) { <<out = tprint("My iwi,  %\n", k); },
+        capture=*output
+    );
+    print(output);
 
     opt :Option(s64)= some(5);
     if is_some(opt) { print("Some: %\n", <<unwrap(opt)); }
     else { print("None\n"); }
 
     out := oh_nose(false);
-    // match(out,
-    //     (o: Result(s8, string).Ok)   { print("Ok: %\n", o); },
-    //     (e: Result(s8, string).Other) { print("Other: %\n", e); },
-    // );
+    match(out,
+        (o: Result(s8, string).Ok)   { print("Ok: %\n", o); },
+        (e: Result(s8, string).Other) { print("Other: %\n", e); },
+    );
 }
 
 oh_nose :: (yes: bool) -> Result(s8, string) {
