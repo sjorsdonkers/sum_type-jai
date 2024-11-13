@@ -122,40 +122,36 @@ union_type :: (u: Sum_Type) -> Type {
 //     (m: MyFruit.Mango)     { print("My ango, %\n", m); },
 //     (k: MyFruit.Kiwi)      { print("My iwi,  %\n", k); },
 // );
-match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void) -> Returns { // TODO find a better type than Any for the proc pointers
-    u_info := cast(*Type_Info) union_type(u);
-    expected_returns :: cast(u8)(Returns!=void);
-    for case_proc: case_procs {
-        assert(case_proc.type.type == .PROCEDURE, "Case procedure must be a procedure");
-        proc_info := cast(*Type_Info_Procedure)(case_proc.type);
-        assert(proc_info.argument_types.count == 1, "Case procedure without captures must have 1 argument"); // TODO 0 for default case
-        assert(proc_info.return_types.count == expected_returns, "Case procedure is expected to have % return values, got %", expected_returns, proc_info.return_types.count); // TODO print variant name
-
-        if u_info == proc_info.argument_types[0] {
-            proc := <<cast(*#type (u._Bytes)->Returns) case_proc.value_pointer;
-            return proc(u._bytes);
-        }
-    }
-    ret: Returns;
-    return ret;
+match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void) -> Returns {
+    return match(u, ..case_procs, Returns=Returns, capture=NoCapture.{});
 }
 match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) -> Returns { // TODO find a better type than Any for the proc pointers
-    u_info := cast(*Type_Info) union_type(u);
     expected_returns :: cast(u8)(Returns!=void);
+    has_capture      :: Env != NoCapture;
+    expected_args    :: 1 + cast(u8)has_capture;
+
+    u_info := cast(*Type_Info) union_type(u);
     for case_proc: case_procs {
         assert(case_proc.type.type == .PROCEDURE, "case_proc must be a procedure");
         proc_info := cast(*Type_Info_Procedure)(case_proc.type);
-        assert(proc_info.argument_types.count == 2, "case_proc with captures must have 2 arguments"); // TODO 0 for default case
+        assert(proc_info.argument_types.count == expected_args, "case_proc with captures must have % arguments", expected_args); // TODO 0 for default case
         assert(proc_info.return_types.count == expected_returns, "Case procedure is expected to have % return values, got %", expected_returns, proc_info.return_types.count); // TODO print variant name
 
         if u_info == proc_info.argument_types[0] {
-            proc := <<cast(*#type (u._Bytes, Env)->Returns) case_proc.value_pointer;
-            return proc(u._bytes, capture);
+            #if has_capture {
+                proc := <<cast(*#type (u._Bytes, Env)->Returns) case_proc.value_pointer;
+                return proc(u._bytes, capture);
+            } else {
+                proc := <<cast(*#type (u._Bytes)->Returns) case_proc.value_pointer;
+                return proc(u._bytes);
+            }
         }
     }
     ret: Returns;
     return ret;
 }
+// A type to indicate that no capture is expected in the match procedure
+NoCapture :: struct {}
 
 #scope_file
 
