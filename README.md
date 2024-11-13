@@ -39,25 +39,27 @@ NU :: #import "Sum_Type";
 #import "Basic";
 ```
 
-Example showing `Option` and `Result` types:
+Example showing `Option`:
 ```jai
-main :: () {
-    opt :Option(s64)= some(5);
-    if is_some(opt) { print("Some: %\n", <<unwrap(opt)); }
-    else { print("None\n"); }
-
-    out :Result(s8, string)= oh_nose(false);
-    match(out,
-        (o: Result(s8, string).Ok)   { print("Ok: %\n", o); },
-        (e: Result(s8, string).Other) { print("Other: %\n", e); },
-    );
+opt := some(5);
+if is_some(opt) {
+    print("Some: %\n", <<unwrap(opt));
+} else {
+    print("None\n");
 }
+```
 
+Example showing `Result`:
+```jai
 oh_nose :: (yes: bool) -> Result(s8, string) {
-    if yes return ok(cast(s8) 3, string);
+    if yes {
+        return ok(cast(s8) 8, string);
+    }
     return other(s8, "Oh nose!");
 }
-
-#import "Sum_Type";
-#import "Basic";
+out := oh_nose(false);
+match(out,
+    (o: Result(s8, string).Ok)   { print("Ok: %\n", o); },
+    (e: Result(s8, string).Other) { print("Other: %\n", e); },
+);
 ```

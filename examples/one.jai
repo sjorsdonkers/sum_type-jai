@@ -3,6 +3,7 @@ MyStruct :: struct {
     b: bool;
 }
 main :: () {
+    // Defining MyFruit as a Sum_Type
     MyFruit :: Sum_Type (
         .{"Pineapple", u8},  // Pineapple :: u8
         .{"Mango", string},  // Mango :: string
@@ -14,6 +15,7 @@ main :: () {
     pinapple_type := union_type(fruitsicle);
     if pinapple { print("fruitsicle: % as %.%\n", fruitsicle, pinapple_type, << pinapple); }
 
+    // Basic match statement
     set(*fruitsicle, MyFruit.Kiwi.{34, true});
     match(fruitsicle,
         (p: MyFruit.Pineapple) { print("My pina, %\n", p); },
@@ -21,20 +23,44 @@ main :: () {
         (k: MyFruit.Kiwi) { print("My iwi,  %\n", k); },
     );
 
-    set(*fruitsicle, MyFruit.Mango.{"Hello"});
-    output: string;
-    match(fruitsicle,
-        (p: MyFruit.Pineapple, out:*string) { <<out = tprint("My pina, %\n", p); },
-        (m: MyFruit.Mango,     out:*string) { <<out = tprint("My ango, %\n", m); },
-        (k: MyFruit.Kiwi,      out:*string) { <<out = tprint("My iwi,  %\n", k); },
-        capture=*output
+    // Match with return value
+    set(*fruitsicle, MyFruit.Kiwi.{4, false});
+    s := match(fruitsicle,
+        (p: MyFruit.Pineapple) -> string { return tprint("My pina, %", p); },
+        (m: MyFruit.Mango) -> string { return tprint("My ango, %", m); },
+        (k: MyFruit.Kiwi) -> string { return tprint("My iwi,  %", k); },
+        Returns=string
     );
-    print(output);
+    print("%\n", s);
 
+    // Match with capture
+    set(*fruitsicle, MyFruit.Mango.{"Hello"});
+    match(fruitsicle,
+        (p: MyFruit.Pineapple, env:string) { print("WAS: `%`. NOW: `My pina, %`\n", env, p); },
+        (m: MyFruit.Mango,     env:string) { print("WAS: `%`. NOW: `My ango, %`\n", env, m); },
+        (k: MyFruit.Kiwi,      env:string) { print("WAS: `%`. NOW: `My iwi,  %`\n", env, k); },
+        capture=s
+    );
+
+    // Match with return value and capture
+    set(*fruitsicle, MyFruit.Mango.{"Sailor"});
+    t := match(fruitsicle,
+        (p: MyFruit.Pineapple, env:string) -> string { return tprint("WAS: `%`. NOW: `My pina, %`", env, p); },
+        (m: MyFruit.Mango,     env:string) -> string { return tprint("WAS: `%`. NOW: `My ango, %`", env, m); },
+        (k: MyFruit.Kiwi,      env:string) -> string { return tprint("WAS: `%`. NOW: `My iwi,  %`", env, k); },
+        capture=s, Returns=string
+    );
+    print("%\n", t);
+
+    // Option
     opt :Option(s64)= some(5);
-    if is_some(opt) { print("Some: %\n", <<unwrap(opt)); }
-    else { print("None\n"); }
+    if is_some(opt) {
+        print("Some: %\n", <<unwrap(opt));
+    } else {
+        print("None\n");
+    }
 
+    // Result
     out := oh_nose(false);
     match(out,
         (o: Result(s8, string).Ok)   { print("Ok: %\n", o); },
@@ -43,7 +69,9 @@ main :: () {
 }
 
 oh_nose :: (yes: bool) -> Result(s8, string) {
-    if yes return ok(cast(s8) 8, string);
+    if yes {
+        return ok(cast(s8) 8, string);
+    }
     return other(s8, "Oh nose!");
 }
 

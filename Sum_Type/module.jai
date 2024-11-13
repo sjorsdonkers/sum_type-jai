@@ -13,13 +13,24 @@
 //   This would also enable single line initialization, usefull to return from a function or when calling a function
 //   fruitsicle :MyFruit= .Pineapple.{5};
 // - Backward flowing automatic type deduction would clean up a lot of the excessive type annotions
-// - Automatic return type deduction for procedures would be great
+//   Typed arguments for `=>` procedures, would greatly enhance the match syntax:
+//   Now:
+//   s := match(fruitsicle,
+//       (k: MyFruit.Kiwi) -> string { return tprint("My iwi,  %", k); },
+//       Returns=string
+//   );
+//   With Typed arguments for `=>` procedures
+//   s := match(fruitsicle,
+//       (k: MyFruit.Kiwi) => tprint("My iwi,  %", k),
+//       Returns=string
+//   );
+
 
 // LIMITATIONS:
 // - Nested Sum_Types require the nested type to have been generated it in advance
 // - Type-variants of Sum_Types and Sum_Types containing user-defined type-variants may not work yet
-// - Missing case procedures are only detected at compile time
 // - Tag is always 1 byte, don't make a Sum_Type with more than 255 variants..
+// - Match currently just supports 1 return value
 
 #load "option.jai";
 #load "result.jai";
@@ -116,35 +127,39 @@ union_type :: (u: Sum_Type) -> Type {
 //     (m: MyFruit.Mango)     { print("My ango, %\n", m); },
 //     (k: MyFruit.Kiwi)      { print("My iwi,  %\n", k); },
 // );
-match :: (u: $U/Sum_Type, case_procs: ..Any) { // TODO find a better type than Any for the proc pointers
+match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void) -> Returns { // TODO find a better type than Any for the proc pointers
     u_info := cast(*Type_Info) union_type(u);
+    expected_returns :: cast(u8)(Returns!=void);
     for case_proc: case_procs {
-        assert(case_proc.type.type == .PROCEDURE, "case_proc must be a procedure");
+        assert(case_proc.type.type == .PROCEDURE, "Case procedure must be a procedure");
         proc_info := cast(*Type_Info_Procedure)(case_proc.type);
-        assert(proc_info.argument_types.count == 1, "case_proc without captures must have 1 argument"); // TODO 0 for default case
-        assert(proc_info.return_types.count == 0, "case_proc may not have a return value yet"); // TODO
+        assert(proc_info.argument_types.count == 1, "Case procedure without captures must have 1 argument"); // TODO 0 for default case
+        assert(proc_info.return_types.count == expected_returns, "Case procedure is expected to have % return values, got %", expected_returns, proc_info.return_types.count); // TODO print variant name
 
         if u_info == proc_info.argument_types[0] {
-            proc := <<cast(*#type (u._Bytes)->()) case_proc.value_pointer;
-            proc(u._bytes);
-            return;
+            proc := <<cast(*#type (u._Bytes)->Returns) case_proc.value_pointer;
+            return proc(u._bytes);
         }
     }
+    ret: Returns;
+    return ret;
 }
-match :: (u: $U/Sum_Type, case_procs: ..Any, capture: $Env) { // TODO find a better type than Any for the proc pointers
+match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) -> Returns { // TODO find a better type than Any for the proc pointers
     u_info := cast(*Type_Info) union_type(u);
+    expected_returns :: cast(u8)(Returns!=void);
     for case_proc: case_procs {
         assert(case_proc.type.type == .PROCEDURE, "case_proc must be a procedure");
         proc_info := cast(*Type_Info_Procedure)(case_proc.type);
         assert(proc_info.argument_types.count == 2, "case_proc with captures must have 2 arguments"); // TODO 0 for default case
-        assert(proc_info.return_types.count == 0, "case_proc may not have a return value yet"); // TODO
+        assert(proc_info.return_types.count == expected_returns, "Case procedure is expected to have % return values, got %", expected_returns, proc_info.return_types.count); // TODO print variant name
 
         if u_info == proc_info.argument_types[0] {
-            proc := <<cast(*#type (u._Bytes, Env)->()) case_proc.value_pointer;
-            proc(u._bytes, capture);
-            return;
+            proc := <<cast(*#type (u._Bytes, Env)->Returns) case_proc.value_pointer;
+            return proc(u._bytes, capture);
         }
     }
+    ret: Returns;
+    return ret;
 }
 
 #scope_file
