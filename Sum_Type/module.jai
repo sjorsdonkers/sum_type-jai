@@ -37,6 +37,7 @@
 // - Type checks are debug asserts at the moment, is there a good way to crash in release?
 //   TODO unwrap_unchecked(..)
 // - Correctness checks of the match statement are limited and mostly runtime
+// - Sum_Type variants may not be called the same as any of the types or as primitives (all names have this limitation, enums structs,..)
 
 #load "option.jai";
 #load "result.jai";
@@ -49,13 +50,22 @@
 // );
 // NOTE: member names are prefixed with an underscore to avoid name collisions
 Sum_Type :: struct ($_variants: ..Variant) {
-    #insert -> string {
+    #insert #run,stallable -> string { // Does stallable help here?
         builder: String_Builder;
+
+        for _variants {
+            type_txt := tprint("%", it.type);
+            assert(!ends_with(type_txt, "=)"), "Sum_Type variant `%` has a variadic parameter, this is not supported.\nDefine a new name with ` #type,isa` or `using #as` and poke the name into Sum_Type.", it.name);
+            assert(type_txt != "(null)", "Polymorph not resolved the type for `%` before Sum_Type generation, use #run on the type. Like: `.{\"Mango\", #run Option(string)},`", it.name);
+            for other: _variants {
+                assert(type_txt != it.name, "Sum_Type name `%` may not be a type", type_txt);
+            }
+        }
 
         // Pineapple :: struct { value: u8; }
         // Mango :: struct { value: string; }
         // Kiwi :: struct { value: MyStruct; }
-        for _variants { print_to_builder(*builder, "% :: struct { value: %; }\n", it.name, it.type); }
+        for _variants { print_to_builder(*builder, "%1 :: struct { value: %2; } // Hint: `#poke_name ST %2` if type is undeclared \n", it.name, it.type); }
 
         // _value_types :: Type.[Pineapple, Mango, Kiwi]; // TODO Remove when possible
         // _value_types is the same as _variants, but using a native type which allows us to process them at compile-time (bug reported)
@@ -82,7 +92,7 @@ Sum_Type :: struct ($_variants: ..Variant) {
         print_to_builder(*builder, "}\n");
 
         return builder_to_string(*builder);
-    }
+    };
     _bytes: _Bytes;
     _tag:   _Tag; // '_tag' tells us the type of the value contained in '_bytes'
                   // It must be set to some index in '_value_types'
