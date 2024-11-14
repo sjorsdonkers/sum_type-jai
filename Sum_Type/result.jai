@@ -1,5 +1,5 @@
 // Meant as function return type to indicate Ok success or Other (error, end of something etc.)
-Result :: struct (Ok: Type, Other: Type) {
+Result :: struct ($Ok: Type, $Other: Type) {
     using #as result: Sum_Type(
         .{"Other", Other},
         .{"Ok", Ok},

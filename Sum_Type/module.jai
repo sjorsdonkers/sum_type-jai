@@ -2,9 +2,11 @@
 // - The need to #poke_name of user-structs into the Sum_Type module.
 //   To avoid this I think we need $call := #caller_code and #insert,scope(call) to work on structs (Sum_Type)
 // - Nested Sum_Types requires stallable on #insert: #insert,stallable
-// - Allow polymorphic Sum_Types. Since the Sum_Type already is polymorphic a using #as work around is required.
+// - Allow polymorphic type-variants. Since the Sum_Type already is polymorphic a using #as work around is required.
 //   With language level support for Sum_Types for example Option would simplify to
-//   Option :: sumtype (T: Type) {None :: void, Some :: T}
+//   Option :: sumtype (T: Type) {None :: void, Some :: T} // Native sum-type support enables compile-time usage.
+//   Or with polymorphic type-variants:
+//   Option :: #type,isa ($T: Type) Sum_Type(.{"None", void},.{"Some", T})
 // - Type deduction for arguments similar to enums' dot notation.
 //   match(opt,
 //       (s: .Some) { print("Some: %\n", s); },     // NOW (s: Option(s64).Some)
@@ -28,7 +30,7 @@
 
 // LIMITATIONS:
 // - Nested Sum_Types require the nested type to have been generated it in advance
-// - Tag is always 1 byte, don't make a Sum_Type with more than 255 variants..
+// - Tag is always 1 byte, don't make a Sum_Type with more than 256 variants..
 // - Match procedure currently just supports 1 return value
 // - Currently it is not possible yet to define a default procedure for match
 
