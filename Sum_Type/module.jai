@@ -29,12 +29,14 @@
 
 
 // LIMITATIONS:
+// - Matching on a pointer to wrapped value is not supported yet
 // - Nested Sum_Types require the nested type to have been generated it in advance
 // - Tag is always 1 byte, don't make a Sum_Type with more than 256 variants..
 // - Match procedure currently just supports 1 return value
 // - Currently it is not possible yet to define a default procedure for match
 // - Type checks are debug asserts at the moment, is there a good way to crash in release?
 //   TODO unwrap_unchecked(..)
+// - Correctness checks of the match statement are limited and mostly runtime
 
 #load "option.jai";
 #load "result.jai";
@@ -137,7 +139,10 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void) -> Returns {
     v :void; // Is there a better inline way to make a void values than (){}()?
     return match(u, ..case_procs, Returns=Returns, capture=v);
 }
-match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) -> Returns { // TODO find a better type than Any for the proc pointers
+// TODO find a better type than Any for the proc pointers,
+// probably Code so case_procs can be compile-time, but then need to modify the argument types to be from the outer scope
+// See https://github.com/sjorsdonkers/sum_type-jai/blob/ec4b0f6ca08a8f65ff0a56517db6a545ecebcd3f/Sum_Type/module.jai#L177
+match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) -> Returns {
     expected_args    :: 1 + cast(u8)(Env != void);
     expected_returns :: cast(u8)(Returns != void);
 
