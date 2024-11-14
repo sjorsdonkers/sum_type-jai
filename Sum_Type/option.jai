@@ -17,12 +17,12 @@ none :: ($V: Type) -> Option(V) {
     return opt;
 }
 is_some :: (option: Option($T)) -> bool {
-    return option._tag == .SOME;
+    return option._tag == .Some;
 }
 is_none :: (option: Option($T)) -> bool {
-    return option._tag == .NONE;
+    return option._tag == .None;
 }
 unwrap :: (option: Option($T)) -> *T {
-    assert(option._tag == option._Tag.SOME, "Attempt to get value of a None Option");
+    assert(option._tag == .Some, "Attempt to get value of a None Option");
     return cast(*T) *option._bytes.some;
 }

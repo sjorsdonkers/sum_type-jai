@@ -16,16 +16,16 @@ other :: ($Ok: Type, value: $Other) -> Result(Ok, Other) {
     return res;
 }
 is_ok :: (result: Result($Ok, $Other)) -> bool {
-    return result._tag == .OK;
+    return result._tag == .Ok;
 }
 is_other :: (result: Result($Ok, $Other)) -> bool {
-    return result._tag == .OTHER;
+    return result._tag == .Other;
 }
 unwrap :: (result: Result($Ok, $Other)) -> *Ok {
-    assert(result._tag == result._Tag.OK, "Attempt to get Ok value of a Other Result");
+    assert(result._tag == .Ok, "Attempt to get Ok value of a Other Result");
     return cast(*T) *result._bytes.ok;
 }
 unwrap_other :: (result: Result($Ok, $Other)) -> *Other {
-    assert(result._tag == result._Tag.OTHER, "Attempt to get Other value of a Ok Result");
+    assert(result._tag == .Other, "Attempt to get Other value of a Ok Result");
     return cast(*T) *result._bytes.other;
 }

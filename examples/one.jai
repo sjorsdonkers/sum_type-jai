@@ -11,9 +11,19 @@ main :: () {
     );
     fruitsicle : MyFruit;
     set(*fruitsicle, MyFruit.Pineapple.{5});
-    pinapple := unwrap(fruitsicle, MyFruit.Pineapple);
-    pinapple_type := current_type(fruitsicle);
-    if pinapple { print("fruitsicle: % as %.%\n", fruitsicle, pinapple_type, << pinapple); }
+
+    // Manual switch statement
+    if #complete fruitsicle._tag == { // if current_type(fruitsicle) == is possible, but does not allow #complete
+    case .Pineapple;
+        fruit := unwrap(fruitsicle, MyFruit.Pineapple);
+        print("case Pineapple: %\n", <<fruit);
+    case .Mango;
+        fruit := unwrap(fruitsicle, MyFruit.Mango);
+        print("case Mango: %\n", <<fruit);
+    case .Kiwi;
+        fruit := unwrap(fruitsicle, MyFruit.Kiwi);
+        print("case Kiwi: %\n", <<fruit);
+    }
 
     // Basic match statement
     set(*fruitsicle, MyFruit.Kiwi.{.{34, true}});

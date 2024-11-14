@@ -33,6 +33,8 @@
 // - Tag is always 1 byte, don't make a Sum_Type with more than 256 variants..
 // - Match procedure currently just supports 1 return value
 // - Currently it is not possible yet to define a default procedure for match
+// - Type checks are debug asserts at the moment, is there a good way to crash in release?
+//   TODO unwrap_unchecked(..)
 
 #load "option.jai";
 #load "result.jai";
@@ -68,12 +70,12 @@ Sum_Type :: struct ($_variants: ..Variant) {
         print_to_builder(*builder, "};\n");
 
         // _Tag :: enum u8 {
-        //     PINEAPPLE :: 0;
-        //     MANGO :: 1;
-        //     KIWI :: 2;
+        //     Pineapple :: 0;
+        //     Mango :: 1;
+        //     Kiwi :: 2;
         // }
         print_to_builder(*builder, "_Tag :: enum u8 {\n");
-        for _variants { print_to_builder(*builder, "    % :: %;\n", to_upper_copy_new(it.name), it_index); }
+        for _variants { print_to_builder(*builder, "    % :: %;\n", it.name, it_index); }
         print_to_builder(*builder, "}\n");
 
         return builder_to_string(*builder);
@@ -112,10 +114,24 @@ current_type :: (u: Sum_Type) -> Type {
 
 // Example usage:
 // match(fruitsicle,
-//     (p: MyFruit.Pineapple) { print("My pina, %\n", p); },
-//     (m: MyFruit.Mango)     { print("My ango, %\n", m); },
-//     (k: MyFruit.Kiwi)      { print("My iwi,  %\n", k); },
+//     (p: MyFruit.Pineapple) { print("match Pineapple: %\n", p); },
+//     (m: MyFruit.Mango)     { print("match Mango: %\n",     m); },
+//     (k: MyFruit.Kiwi)      { print("match Kiwi:  %\n",     k); },
 // );
+//
+// The match procedure is just syntax sugar for the same code below
+// Additionally match is able to prevent certain bugs
+// if #complete fruitsicle._tag == { // if current_type(fruitsicle) == is possible, but does not allow #complete
+// case .Pineapple;
+//     fruit := unwrap(fruitsicle, MyFruit.Pineapple);
+//     print("case Pineapple: %\n", <<fruit);
+// case .Mango;
+//     fruit := unwrap(fruitsicle, MyFruit.Mango);
+//     print("case Mango: %\n", <<fruit);
+// case .Kiwi;
+//     fruit := unwrap(fruitsicle, MyFruit.Kiwi);
+//     print("case Kiwi: %\n", <<fruit);
+// }
 match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void) -> Returns {
     v :void; // Is there a better inline way to make a void values than (){}()?
     return match(u, ..case_procs, Returns=Returns, capture=v);
