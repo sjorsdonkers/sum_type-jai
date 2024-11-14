@@ -98,14 +98,12 @@ set :: (u: *Sum_Type, value: $T) {
     <<pointer = value;
 }
 
-// isa(u, T): Does the Sum_Type 'u' hold a value of type 'T'?
-isa :: (u: Sum_Type, $T: Type) -> *T {
-    // If the tag is T, return appropriately casted memory.
-    // Otherwise, return null.
-    // This is equivalent to true or false if used in an 'if' statement.
+// unwrap(u, T): Returns a pointer to the value stored in 'u' if it is of type 'T'.
+// Crashes if 'u' is not of type 'T'. (TODO)
+unwrap :: (u: Sum_Type, $T: Type) -> *T {
     expected_tag :: #run index_of_type(u._value_types, T);
-    if u._tag == expected_tag  return cast(*T) *u._bytes;
-    return null;
+    assert(u._tag == expected_tag, "Attempt to get value of a % Sum_Type with a % tag", T, u._tag);
+    return cast(*T) *u._bytes;
 }
 
 current_type :: (u: Sum_Type) -> Type {
