@@ -125,11 +125,12 @@ union_type :: (u: Sum_Type) -> Type {
 //     (k: MyFruit.Kiwi)      { print("My iwi,  %\n", k); },
 // );
 match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void) -> Returns {
-    return match(u, ..case_procs, Returns=Returns, capture=NoCapture.{});
+    v :void; // Is there a better inline way to make a void values than (){}()?
+    return match(u, ..case_procs, Returns=Returns, capture=v);
 }
 match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) -> Returns { // TODO find a better type than Any for the proc pointers
     expected_returns :: cast(u8)(Returns!=void);
-    has_capture      :: Env != NoCapture;
+    has_capture      :: Env != void;
     expected_args    :: 1 + cast(u8)has_capture;
 
     u_info := cast(*Type_Info) union_type(u);
@@ -152,8 +153,6 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) 
     ret: Returns;
     return ret;
 }
-// A type to indicate that no capture is expected in the match procedure
-NoCapture :: struct {}
 
 #scope_file
 
