@@ -45,6 +45,7 @@
 //     .{"Mango", string},
 //     .{"Kiwi", MyStruct},
 // );
+// NOTE: member names are prefixed with an underscore to avoid name collisions
 Sum_Type :: struct ($_variants: ..Variant) {
     #insert -> string {
         builder: String_Builder;
@@ -114,23 +115,23 @@ current_type :: (u: Sum_Type) -> Type {
 
 // Example usage:
 // match(fruitsicle,
-//     (p: MyFruit.Pineapple) { print("match Pineapple: %\n", p); },
-//     (m: MyFruit.Mango)     { print("match Mango: %\n",     m); },
-//     (k: MyFruit.Kiwi)      { print("match Kiwi:  %\n",     k); },
+//     (p: MyFruit.Pineapple) { print("Basic match Pineapple: %\n", p); },
+//     (m: MyFruit.Mango)     { print("Basic match Mango: %\n",     m); },
+//     (k: MyFruit.Kiwi)      { print("Basic match Kiwi:  %\n",     k); },
 // );
 //
 // The match procedure is just syntax sugar for the same code below
 // Additionally match is able to prevent certain bugs
-// if #complete fruitsicle._tag == { // if current_type(fruitsicle) == is possible, but does not allow #complete
+// if #complete fruitsicle._tag == {    // if current_type(fruitsicle) == is possible, but does not allow #complete
 // case .Pineapple;
 //     fruit := unwrap(fruitsicle, MyFruit.Pineapple);
-//     print("case Pineapple: %\n", <<fruit);
+//     print("Case Pineapple: %\n", <<fruit);
 // case .Mango;
 //     fruit := unwrap(fruitsicle, MyFruit.Mango);
-//     print("case Mango: %\n", <<fruit);
+//     print("Case Mango: %\n", <<fruit);
 // case .Kiwi;
 //     fruit := unwrap(fruitsicle, MyFruit.Kiwi);
-//     print("case Kiwi: %\n", <<fruit);
+//     print("Case Kiwi: %\n", <<fruit);
 // }
 match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void) -> Returns {
     v :void; // Is there a better inline way to make a void values than (){}()?
