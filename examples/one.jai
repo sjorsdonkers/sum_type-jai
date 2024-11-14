@@ -12,7 +12,7 @@ main :: () {
     fruitsicle : MyFruit;
     set(*fruitsicle, MyFruit.Pineapple.{5});
     pinapple := isa(fruitsicle, MyFruit.Pineapple);
-    pinapple_type := union_type(fruitsicle);
+    pinapple_type := current_type(fruitsicle);
     if pinapple { print("fruitsicle: % as %.%\n", fruitsicle, pinapple_type, << pinapple); }
 
     // Basic match statement

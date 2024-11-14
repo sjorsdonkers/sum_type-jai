@@ -92,7 +92,7 @@ Variant :: struct {
 
 // set(*u, value): Set the type tag of 'u' to type_of(value), and copy 'value' into u's storage.
 set :: (u: *Sum_Type, value: $T) {
-    target_tag :: #run union_index(u._value_types, T);
+    target_tag :: #run index_of_type(u._value_types, T);
     u._tag = target_tag;
     pointer := cast(*T) *u._bytes;
     <<pointer = value;
@@ -103,18 +103,12 @@ isa :: (u: Sum_Type, $T: Type) -> *T {
     // If the tag is T, return appropriately casted memory.
     // Otherwise, return null.
     // This is equivalent to true or false if used in an 'if' statement.
-    expected_tag :: #run union_index(u._value_types, T);
+    expected_tag :: #run index_of_type(u._value_types, T);
     if u._tag == expected_tag  return cast(*T) *u._bytes;
     return null;
 }
 
-union_index :: ($types: []Type, $T: Type) -> u8 {
-    found, index := array_find(types, T);
-    assert(found, "Type % is not one of the possible types: %", T, types);
-    return cast(u8) index;
-}
-
-union_type :: (u: Sum_Type) -> Type {
+current_type :: (u: Sum_Type) -> Type {
     return u._value_types[u._tag];
 }
 
@@ -132,7 +126,7 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) 
     expected_args    :: 1 + cast(u8)(Env != void);
     expected_returns :: cast(u8)(Returns != void);
 
-    u_info := cast(*Type_Info) union_type(u);
+    u_info := cast(*Type_Info) current_type(u);
     for case_proc: case_procs {
         assert(case_proc.type.type == .PROCEDURE, "Case procedure must be a procedure");
         proc_info := cast(*Type_Info_Procedure)(case_proc.type);
@@ -154,6 +148,12 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) 
 }
 
 #scope_file
+
+index_of_type :: ($types: []Type, $T: Type) -> u8 {
+    found, index := array_find(types, T);
+    assert(found, "Type % is not one of the possible types: %", T, types);
+    return cast(u8) index;
+}
 
 #import "Basic";
 #import "String";
