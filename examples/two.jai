@@ -8,19 +8,19 @@ MyMeat :: struct {
         .{"MyStruct", s32},
     );
 }
-MyBread :: #type,isa Sum_Type (
-    .{"Baguette", u8},
-    .{"Croissant", string},
-    .{"Pan_De_Sal", #run Option(MyStruct)},
-);
-MyFruit :: Sum_Type (
+MyBread :: struct {
+    using #as bread: Sum_Type(
+        .{"Baguette", u8},
+        .{"Croissant", string},
+        .{"Pan_De_Sal", #run Option(MyStruct)},
+    );
+}
+MyFruit :: #type,isa Sum_Type (
     .{"Pineapple", u8},
     .{"Mango", #run Option(string)},
     .{"Kiwi", MyStruct},
 );
 main :: () {
-
-    // Meat.Salami.{.{3}};
     MyFood :: #type,isa Sum_Type (
         .{"Bread", #run MyBread},
         .{"Fruit", #run MyFruit},
