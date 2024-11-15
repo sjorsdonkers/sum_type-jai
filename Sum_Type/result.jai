@@ -6,14 +6,10 @@ Result :: struct ($Ok: Type, $Other: Type) {
     );
 }
 ok :: (value: $Ok, $Other: Type) -> Result(Ok, Other) {
-    res : Result(Ok, Other);
-    set(*res, .Ok, value);
-    return res;
+    return sum_type(Result(Ok, Other), .Ok, value);
 }
 other :: ($Ok: Type, value: $Other) -> Result(Ok, Other) {
-    res : Result(Ok, Other);
-    set(*res, .Other, value);
-    return res;
+    return sum_type(Result(Ok, Other), .Other, value);
 }
 is_ok :: (result: Result($Ok, $Other)) -> bool {
     return result._tag == .Ok;

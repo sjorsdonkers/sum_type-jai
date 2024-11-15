@@ -7,15 +7,11 @@ Option :: struct ($T: Type) {
     );
 }
 some :: (value: $V) -> Option(V) {
-    opt : Option(V);
-    set(*opt, .Some, value);
-    return opt;
+    return sum_type(Option(V), .Some, value);
 }
 none :: ($V: Type) -> Option(V) {
-    opt : Option(V);
-    nope: none;
-    set(*opt, .None, nope);
-    return opt;
+    nope: void;
+    return sum_type(Option(V), .None, nope);
 }
 is_some :: (option: Option($T)) -> bool {
     return option._tag == .Some;
