@@ -170,6 +170,7 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) 
     default_proc : Any;
     variant_info := cast(*Type_Info) current_type(u);
     for case_proc: case_procs {
+        // Checks
         assert(case_proc.type.type == .PROCEDURE, "Case procedure must be a procedure");
         proc_info := cast(*Type_Info_Procedure)(case_proc.type);
         assert(proc_info.argument_types.count == expected_args, "Case procedure with captures must have % arguments", expected_args); // TODO 0 for default case
@@ -177,35 +178,31 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) 
         assert(proc_info.return_types.count == expected_returns, "Case procedure is expected to have % return values, got %", expected_returns, proc_info.return_types.count); // TODO print variant name
         #if expected_returns == 1 assert(proc_info.return_types[0] == type_info(Returns), "Case procedure return type mismatch, expected %", Returns);
 
-        if proc_info.argument_types[0] == variant_info{
-            #if expected_args == 2 {
-                proc := <<cast(*#type (u._Bytes, Env)->Returns) case_proc.value_pointer;
-                return proc(u._bytes, capture);
-            } else {
-                proc := <<cast(*#type (u._Bytes)->Returns) case_proc.value_pointer;
-                return proc(u._bytes);
-            }
-        }
-        if proc_info.argument_types[0] == sum_info { // This is the default case, store it in case we can't find a better match
+        // Call, store default, or continue
+        if proc_info.argument_types[0] == variant_info {
+            return call(u._bytes, case_proc, Returns, capture);
+        }else if proc_info.argument_types[0] == sum_info { // This is the default case, store it in case we can't find a better match
             assert(default_proc.value_pointer == null, "Multiple default case procedures found");
             default_proc = case_proc;
         }
     }
-    if default_proc.value_pointer {
-        #if expected_args == 2 {
-            proc := <<cast(*#type (u._Bytes, Env)->Returns) default_proc.value_pointer;
-            return proc(u._bytes, capture);
-        } else {
-            proc := <<cast(*#type (u._Bytes)->Returns) default_proc.value_pointer;
-            return proc(u._bytes);
-        }
-    }
+    if default_proc.value_pointer { return call(u._bytes, default_proc, Returns, capture); }
     assert(false, "No case matched for Sum_Type variant %", u._tag); // Do we care?
     ret: Returns;
     return ret;
 }
 
 #scope_file
+
+call :: (bytes: $Bytes, case_proc: Any, $Returns:Type, capture: $Env) -> Returns {
+    #if Env != void {
+        proc := <<cast(*#type (Bytes, Env)->Returns) case_proc.value_pointer;
+        return proc(bytes, capture);
+    } else {
+        proc := <<cast(*#type (Bytes)->Returns) case_proc.value_pointer;
+        return proc(bytes);
+    }
+}
 
 index_of_type :: ($types: []Type, $T: Type) -> u8 {
     found, index := array_find(types, T);
