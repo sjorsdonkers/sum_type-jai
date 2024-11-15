@@ -7,12 +7,12 @@ Result :: struct ($Ok: Type, $Other: Type) {
 }
 ok :: (value: $Ok, $Other: Type) -> Result(Ok, Other) {
     res : Result(Ok, Other);
-    set(*res, Result(Ok, Other).Ok.{value});
+    set(*res, .Ok, value);
     return res;
 }
 other :: ($Ok: Type, value: $Other) -> Result(Ok, Other) {
     res : Result(Ok, Other);
-    set(*res, Result(Ok, Other).Other.{value});
+    set(*res, .Other, value);
     return res;
 }
 is_ok :: (result: Result($Ok, $Other)) -> bool {

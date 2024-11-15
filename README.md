@@ -19,8 +19,8 @@ main :: () {
     );
 
     fruitsicle := sum_type(MyFruit, .Pineapple, cast(u8)5);
-    set(*fruitsicle, MyFruit.Mango.{"Hello"});
-    set(*fruitsicle, MyFruit.Kiwi.{.{34, true}});
+    set(*fruitsicle, .Mango, "Hello");
+    set(*fruitsicle, .Kiwi, MyStruct.{34, true});
 
     match(fruitsicle,
         (p: MyFruit.Pineapple) { print("Basic match Pineapple: %\n", p); },

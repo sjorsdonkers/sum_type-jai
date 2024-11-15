@@ -4,10 +4,10 @@ MyStruct :: struct {
 }
 #poke_name ST MyStruct; // To avoid this I think(?) we need $call := #caller_code and #insert,scope(call) to work on structs (Sum_Type)
 MyBread :: struct {
-    using #as base: Sum_Type( // using #as since `#type,isa` does not expose .Baguette on the variant type MyBread.
+    using #as base: Sum_Type( // using #as since `#type,isa` does not expose .Baguette on the variant type MyBread. (using #as also enables the struct to be polymorphic)
         .{"Baguette", u8},
         .{"Croissant", string},
-        .{"Pan_De_Sal", #run Option(MyStruct)},
+        .{"Pan_De_Sal", #run Option(MyStruct)}, // #run is needed to make sure the specifc Sum_Type is generated before this one
     );
 }
 #poke_name ST MyBread;
@@ -60,12 +60,12 @@ main :: () {
 
     // Ideal match syntax with quick procedures
     // t := match(food,
-    //     (b: MyFood.Bread) => match(b.value,
-    //         (b: MyBread.Baguette)   => b,
-    //         (c: MyBread.Croissant)  => cast(u8)c.count,
-    //         (p: MyBread.Pan_De_Sal) => cast(u8)ifx is_some(p) unwrap(p).spaghetti else 0,
+    //     (b: .Bread) => match(b,
+    //         (b: .Baguette)   => b,
+    //         (c: .Croissant)  => cast(u8)c.count,
+    //         (p: .Pan_De_Sal) => cast(u8)ifx is_some(p) unwrap(p).spaghetti else 0,
     //     ),
-    //     (f: MyFood.Fruit) => cast(u8)9,
+    //     (f: .Fruit) => cast(u8)9,
     // );
     // print("%\n", t);
 }

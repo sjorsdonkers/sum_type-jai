@@ -25,7 +25,7 @@ main :: () {
     }
 
     // Basic match statement
-    set(*fruitsicle, MyFruit.Kiwi.{.{34, true}});
+    set(*fruitsicle, .Kiwi, MyStruct.{34, true});
     match(fruitsicle,
         (p: MyFruit.Pineapple) { print("Basic match Pineapple: %\n", p); },
         (m: MyFruit.Mango)     { print("Basic match Mango: %\n",     m); },
@@ -33,7 +33,7 @@ main :: () {
     );
 
     // Match with return value
-    set(*fruitsicle, MyFruit.Kiwi.{.{4, false}});
+    set(*fruitsicle, .Kiwi, MyStruct.{4, false});
     s := match(fruitsicle,
         (p: MyFruit.Pineapple) -> string { return tprint("Match with return Pineapple: %", p); },
         (m: MyFruit.Mango)     -> string { return tprint("Match with return Mango: %",     m); },
@@ -43,7 +43,7 @@ main :: () {
     print("%\n", s);
 
     // Match with capture
-    set(*fruitsicle, MyFruit.Mango.{"Hello"});
+    set(*fruitsicle, .Mango, "Hello");
     match(fruitsicle,
         (p: MyFruit.Pineapple, env:string) { print("WAS: `%`. NOW: `Match with capture Pineapple: %`\n", env, p); },
         (m: MyFruit.Mango,     env:string) { print("WAS: `%`. NOW: `Match with capture Mango: %`\n",     env, m); },
@@ -52,7 +52,7 @@ main :: () {
     );
 
     // Match with return value and capture
-    set(*fruitsicle, MyFruit.Mango.{"Sailor"});
+    set(*fruitsicle, .Mango, "Sailor");
     t := match(fruitsicle,
         (p: MyFruit.Pineapple, env:string) -> string { return tprint("WAS: `%`. NOW: `Match with return & capture Pineapple: %`", env, p); },
         (m: MyFruit.Mango,     env:string) -> string { return tprint("WAS: `%`. NOW: `Match with return & capture Mango: %`",     env, m); },

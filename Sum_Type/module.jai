@@ -106,20 +106,19 @@ Variant :: struct {
 
 // Construct a Sum_Type with a specific variant and value.
 // fruitsicle := sum_type(MyFruit, .Pineapple, cast(u8)5);
-sum_type :: ($ST: Type, $tag: ST._Tag, value: $V) -> ST {
-    variant_type :: ST._value_types[tag];
-    data := variant_type.{value};
-    sum: ST; // Not setting ---, as user struct may have more fields
-    set(*sum, data);
-    return sum; // @perf .{cast,force(ST._Bytes)data, tag};
+sum_type :: ($ST: Type, $tag: ST._Tag, value: $V) -> ST { // TODO #modify check if ST is Sum_Type
+    sum: ST; // Not setting ---, as user-struct may have more fields
+    set(*sum, tag, value);
+    return sum;
 }
 
-// set(*u, value): Set the type tag of 'u' to type_of(value), and copy 'value' into u's storage.
-set :: (u: *Sum_Type, value: $T) {
-    target_tag :: #run index_of_type(u._value_types, T);
-    u._tag = target_tag;
-    pointer := cast(*T) *u._bytes;
-    <<pointer = value;
+// Set the type tag of 'u' to type_of(value), and copy 'value' into u's storage.
+// set(*fruitsicle, .Mango, "Hello");
+set :: (u: *$ST/Sum_Type, $tag: ST._Tag, value: $V) {
+    variant_type :: ST._value_types[tag];
+    u._tag = tag;
+    pointer := cast(*variant_type) *u._bytes;
+    <<pointer = .{value};
 }
 
 // unwrap(u, T): Returns a pointer to the value stored in the variant of 'u'.

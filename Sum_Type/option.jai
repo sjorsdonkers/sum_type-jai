@@ -8,12 +8,13 @@ Option :: struct ($T: Type) {
 }
 some :: (value: $V) -> Option(V) {
     opt : Option(V);
-    set(*opt, Option(V).Some.{value});
+    set(*opt, .Some, value);
     return opt;
 }
 none :: ($V: Type) -> Option(V) {
     opt : Option(V);
-    set(*opt, Option(V).None.{});
+    nope: none;
+    set(*opt, .None, nope);
     return opt;
 }
 is_some :: (option: Option($T)) -> bool {
