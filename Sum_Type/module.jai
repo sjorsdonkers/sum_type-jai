@@ -34,13 +34,10 @@
 
 // LIMITATIONS:
 // - Matching on a pointer to wrapped value is not supported yet
-// - Nested Sum_Types require the nested type to have been generated it in advance
+// - Nested Sum_Types require the nested type to have been generated it in advance with #run
 // - Tag is always 1 byte, don't make a Sum_Type with more than 256 variants..
 // - Match procedure currently just supports 1 return value
-// - Currently it is not possible yet to define a default procedure for match
-// - Type checks are debug asserts at the moment, is there a good way to crash in release?
-//   TODO unwrap_unchecked(..)
-// - Correctness checks of the match statement are limited and mostly runtime
+// - Type checks are debug asserts at the moment, should be compile-time. Also is there a good way to crash in release?
 // - Sum_Type variants may not be called the same as any of the types or as primitives (all names have this limitation, enums structs,..)
 
 #load "option.jai";
