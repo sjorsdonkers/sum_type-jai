@@ -76,14 +76,19 @@ main :: () {
     }
 
     // Result
-    out := oh_nose(false);
+    out := level_1(false);
     match(out,
         (o: Result(s8, string).Ok)    { print("Ok: %\n",    o); },
         (e: Result(s8, string).Other) { print("Other: %\n", e); },
     );
 }
 
-oh_nose :: (yes: bool) -> Result(s8, string) {
+level_1 :: (yes: bool) -> Result(s8, string) {
+    val := q(level_2(yes)); // q() returns from this procedure or unwraps the result
+    return ok(val + 9, string);
+}
+
+level_2 :: (yes: bool) -> Result(s8, string) {
     if yes {
         return ok(cast(s8) 8, string);
     }

@@ -50,15 +50,20 @@ if is_some(opt) {
 
 Example showing `Result`:
 ```jai
-oh_nose :: (yes: bool) -> Result(s8, string) {
+level_2 :: (yes: bool) -> Result(s8, string) {
     if yes {
-        return ok(cast(s8) 8, string);
+        return ok(cast(s8) 8, string); // Creates an Ok Result
     }
-    return other(s8, "Oh nose!");
+    return other(s8, "Oh nose!");      // Creates an Other Result
 }
-out := oh_nose(false);
+level_1 :: (yes: bool) -> Result(s8, string) {
+    val := q(level_2(yes)); // q() returns from this procedure or unwraps the result
+    return ok(val + 9, string);
+}
+
+out := level_1(false);
 match(out,
-    (o: Result(s8, string).Ok)   { print("Ok: %\n", o); },
+    (o: Result(s8, string).Ok)    { print("Ok: %\n",    o); },
     (e: Result(s8, string).Other) { print("Other: %\n", e); },
 );
 ```
