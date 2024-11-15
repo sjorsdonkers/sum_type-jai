@@ -9,10 +9,9 @@ main :: () {
         .{"Mango", string},  // Mango :: string
         .{"Kiwi", MyStruct}, // Kiwi :: MyStruct
     );
-    fruitsicle : MyFruit;
+    fruitsicle := sum_type(MyFruit, .Pineapple, cast(u8)5);
 
     // Manual switch statement
-    set(*fruitsicle, MyFruit.Pineapple.{5});
     if #complete fruitsicle._tag == { // if current_type(fruitsicle) == is possible, but does not allow #complete
     case .Pineapple;
         fruit := unwrap(fruitsicle, MyFruit.Pineapple);
