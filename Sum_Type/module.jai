@@ -25,6 +25,11 @@
 //       (k: MyFruit.Kiwi) => tprint("My iwi,  %", k),
 //       Returns=string
 //   );
+// - Would be nice if #modify can take compile-time bakeable arguments as input to determine the return type
+//   unwrap :: (u: $ST/Sum_Type, $tag: ST._Tag) -> *$R #modify{
+//       R = type_of(ST._value_types[tag].value); //  Error: #modify procs can only take arguments whose types are known *before* the polymorph occurs
+//       return true;
+//   }{..}
 
 
 // LIMITATIONS:
@@ -123,6 +128,7 @@ set :: (u: *$ST/Sum_Type, $tag: ST._Tag, value: $V) {
 
 // unwrap(u, T): Returns a pointer to the value stored in the variant of 'u'.
 // Crashes if 'u' is not of type 'T'. (TODO)
+// mango :=unwrap(fruitsicle, MyFruit.Mango);
 unwrap :: (u: Sum_Type, $T: Type) -> *type_of(T.value) {
     expected_tag :: #run index_of_type(u._value_types, T);
     assert(u._tag == expected_tag, "Attempt to get value of a % Sum_Type with a % tag", T, u._tag);
@@ -160,7 +166,7 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) 
     expected_args    :: 1 + cast(u8)(Env != void);
     expected_returns :: cast(u8)(Returns != void);
 
-    u_info := cast(*Type_Info) u._value_types[u._tag];
+    u_info := cast(*Type_Info) current_type(u);
     for case_proc: case_procs {
         assert(case_proc.type.type == .PROCEDURE, "Case procedure must be a procedure");
         proc_info := cast(*Type_Info_Procedure)(case_proc.type);
@@ -187,6 +193,10 @@ index_of_type :: ($types: []Type, $T: Type) -> u8 {
     found, index := array_find(types, T);
     assert(found, "Type % is not one of the possible types: %", T, types);
     return cast(u8) index;
+}
+
+current_type :: (u: Sum_Type) -> Type {
+    return u._value_types[u._tag];
 }
 
 #import "Basic";
