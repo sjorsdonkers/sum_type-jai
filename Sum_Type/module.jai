@@ -129,10 +129,6 @@ unwrap :: (u: Sum_Type, $T: Type) -> *type_of(T.value) {
     return *(cast(*T) *u._bytes).value;
 }
 
-current_type :: (u: Sum_Type) -> Type {
-    return u._value_types[u._tag];
-}
-
 // Example usage:
 // match(fruitsicle,
 //     (p: MyFruit.Pineapple) { print("Basic match Pineapple: %\n", p); },
@@ -142,7 +138,7 @@ current_type :: (u: Sum_Type) -> Type {
 //
 // The match procedure is just syntax sugar for the same code below
 // Additionally match is able to prevent certain bugs
-// if #complete fruitsicle._tag == {    // if current_type(fruitsicle) == is possible, but does not allow #complete
+// if #complete fruitsicle._tag == {
 // case .Pineapple;
 //     fruit := unwrap(fruitsicle, MyFruit.Pineapple);
 //     print("Case Pineapple: %\n", <<fruit);
@@ -164,7 +160,7 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) 
     expected_args    :: 1 + cast(u8)(Env != void);
     expected_returns :: cast(u8)(Returns != void);
 
-    u_info := cast(*Type_Info) current_type(u);
+    u_info := cast(*Type_Info) u._value_types[u._tag];
     for case_proc: case_procs {
         assert(case_proc.type.type == .PROCEDURE, "Case procedure must be a procedure");
         proc_info := cast(*Type_Info_Procedure)(case_proc.type);

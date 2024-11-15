@@ -12,7 +12,7 @@ main :: () {
     fruitsicle := sum_type(MyFruit, .Pineapple, cast(u8)5);
 
     // Manual switch statement
-    if #complete fruitsicle._tag == { // if current_type(fruitsicle) == is possible, but does not allow #complete
+    if #complete fruitsicle._tag == {
     case .Pineapple;
         fruit := unwrap(fruitsicle, MyFruit.Pineapple);
         print("Case Pineapple: %\n", <<fruit);
