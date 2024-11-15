@@ -173,7 +173,9 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) 
         assert(case_proc.type.type == .PROCEDURE, "Case procedure must be a procedure");
         proc_info := cast(*Type_Info_Procedure)(case_proc.type);
         assert(proc_info.argument_types.count == expected_args, "Case procedure with captures must have % arguments", expected_args); // TODO 0 for default case
+        #if expected_args == 2 assert(proc_info.argument_types[1] == type_info(Env), "Case procedure capture argument type mismatch, expected %", Env);
         assert(proc_info.return_types.count == expected_returns, "Case procedure is expected to have % return values, got %", expected_returns, proc_info.return_types.count); // TODO print variant name
+        #if expected_returns == 1 assert(proc_info.return_types[0] == type_info(Returns), "Case procedure return type mismatch, expected %", Returns);
 
         if proc_info.argument_types[0] == variant_info{
             #if expected_args == 2 {
@@ -184,7 +186,10 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) 
                 return proc(u._bytes);
             }
         }
-        if proc_info.argument_types[0] == sum_info { default_proc = case_proc; } // This is the default case, store it in case we can't find a better match
+        if proc_info.argument_types[0] == sum_info { // This is the default case, store it in case we can't find a better match
+            assert(default_proc.value_pointer == null, "Multiple default case procedures found");
+            default_proc = case_proc;
+        }
     }
     if default_proc.value_pointer {
         #if expected_args == 2 {
@@ -195,7 +200,7 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) 
             return proc(u._bytes);
         }
     }
-
+    assert(false, "No case matched for Sum_Type variant %", u._tag); // Do we care?
     ret: Returns;
     return ret;
 }
