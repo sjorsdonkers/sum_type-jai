@@ -111,7 +111,7 @@ Variant :: struct {
 
 // Construct a Sum_Type with a specific variant and value.
 // fruitsicle := sum_type(MyFruit, .Pineapple, cast(u8)5);
-sum_type :: ($ST: Type, $tag: ST._Tag, value: $V) -> ST { // TODO #modify check if ST is Sum_Type
+sum_type :: ($ST: Type, $tag: ST._Tag, value: $V) -> ST {
     sum: ST; // Not setting ---, as user-struct may have more fields
     set(*sum, tag, value);
     return sum;
@@ -163,17 +163,19 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void) -> Returns {
 // probably Code so case_procs can be compile-time, but then need to modify the argument types to be from the outer scope
 // See https://github.com/sjorsdonkers/sum_type-jai/blob/ec4b0f6ca08a8f65ff0a56517db6a545ecebcd3f/Sum_Type/module.jai#L177
 match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) -> Returns { // TODO consider #add_context instead of capture
+    sum_info :: type_info(U);
     expected_args    :: 1 + cast(u8)(Env != void);
     expected_returns :: cast(u8)(Returns != void);
 
-    u_info := cast(*Type_Info) current_type(u);
+    default_proc : Any;
+    variant_info := cast(*Type_Info) current_type(u);
     for case_proc: case_procs {
         assert(case_proc.type.type == .PROCEDURE, "Case procedure must be a procedure");
         proc_info := cast(*Type_Info_Procedure)(case_proc.type);
         assert(proc_info.argument_types.count == expected_args, "Case procedure with captures must have % arguments", expected_args); // TODO 0 for default case
         assert(proc_info.return_types.count == expected_returns, "Case procedure is expected to have % return values, got %", expected_returns, proc_info.return_types.count); // TODO print variant name
 
-        if u_info == proc_info.argument_types[0] {
+        if proc_info.argument_types[0] == variant_info{
             #if expected_args == 2 {
                 proc := <<cast(*#type (u._Bytes, Env)->Returns) case_proc.value_pointer;
                 return proc(u._bytes, capture);
@@ -182,7 +184,18 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) 
                 return proc(u._bytes);
             }
         }
+        if proc_info.argument_types[0] == sum_info { default_proc = case_proc; } // This is the default case, store it in case we can't find a better match
     }
+    if default_proc.value_pointer {
+        #if expected_args == 2 {
+            proc := <<cast(*#type (u._Bytes, Env)->Returns) default_proc.value_pointer;
+            return proc(u._bytes, capture);
+        } else {
+            proc := <<cast(*#type (u._Bytes)->Returns) default_proc.value_pointer;
+            return proc(u._bytes);
+        }
+    }
+
     ret: Returns;
     return ret;
 }

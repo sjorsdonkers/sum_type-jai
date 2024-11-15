@@ -25,7 +25,7 @@ main :: () {
     match(fruitsicle,
         (p: MyFruit.Pineapple) { print("Basic match Pineapple: %\n", p); },
         (m: MyFruit.Mango)     { print("Basic match Mango: %\n",     m); },
-        (k: MyFruit.Kiwi)      { print("Basic match Kiwi:  %\n",     k); },
+        (k: MyFruit.Kiwi)      { print("Basic match Kiwi: %\n",      k); },
     );
 }
 MyStruct :: struct {
