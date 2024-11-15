@@ -1,7 +1,6 @@
 // Jai language support can improve:
 // - The need to #poke_name of user-structs into the Sum_Type module.
-//   To avoid this I think we need $call := #caller_code and #insert,scope(call) to work on structs (Sum_Type)
-// - Nested Sum_Types requires stallable on #insert: #insert,stallable
+//   To avoid this I think(?) we need $call := #caller_code and #insert,scope(call) to work on structs (Sum_Type)
 // - Allow polymorphic type-variants. Since the Sum_Type already is polymorphic a using #as work around is required.
 //   With language level support for Sum_Types for example Option would simplify to
 //   Option :: sumtype (T: Type) {None :: void, Some :: T} // Native sum-type support enables compile-time usage.
@@ -37,6 +36,7 @@
 // - Type checks are debug asserts at the moment, is there a good way to crash in release?
 //   TODO unwrap_unchecked(..)
 // - Correctness checks of the match statement are limited and mostly runtime
+// - Sum_Type variants may not be called the same as any of the types or as primitives (all names have this limitation, enums structs,..)
 
 #load "option.jai";
 #load "result.jai";
@@ -49,13 +49,22 @@
 // );
 // NOTE: member names are prefixed with an underscore to avoid name collisions
 Sum_Type :: struct ($_variants: ..Variant) {
-    #insert -> string {
+    #insert #run,stallable -> string { // Does stallable help here? Variant.type still is (null) sometimes
         builder: String_Builder;
+
+        for _variants {
+            type_txt := tprint("%", it.type);
+            assert(!ends_with(type_txt, "=)"), "Sum_Type variant `%` has a variadic parameter, this is not supported.\nDefine a new name with `using #as` and poke the name into Sum_Type.", it.name);
+            assert(type_txt != "(null)", "Polymorph not resolved the type for `%` before Sum_Type generation,\nuse #run on the type. Like: `.{\"Mango\", #run Option(string)},`", it.name);
+            for other: _variants {
+                assert(type_txt != it.name, "Sum_Type name `%` may not be a type", type_txt);
+            }
+        }
 
         // Pineapple :: struct { value: u8; }
         // Mango :: struct { value: string; }
         // Kiwi :: struct { value: MyStruct; }
-        for _variants { print_to_builder(*builder, "% :: struct { value: %; }\n", it.name, it.type); }
+        for _variants { print_to_builder(*builder, "%1 :: struct { value: %2; } // Hint: `#poke_name ST %2` if type is undeclared \n", it.name, it.type); }
 
         // _value_types :: Type.[Pineapple, Mango, Kiwi]; // TODO Remove when possible
         // _value_types is the same as _variants, but using a native type which allows us to process them at compile-time (bug reported)
@@ -82,7 +91,7 @@ Sum_Type :: struct ($_variants: ..Variant) {
         print_to_builder(*builder, "}\n");
 
         return builder_to_string(*builder);
-    }
+    };
     _bytes: _Bytes;
     _tag:   _Tag; // '_tag' tells us the type of the value contained in '_bytes'
                   // It must be set to some index in '_value_types'
@@ -93,6 +102,14 @@ Sum_Type :: struct ($_variants: ..Variant) {
 Variant :: struct {
     name: string;
     type: Type;
+}
+
+sum_type :: ($ST: Type, $tag: ST._Tag, value: $V) -> ST {
+    variant_type :: ST._value_types[tag];
+    data := variant_type.{value};
+    sum: ST; // Not setting ---, as user struct may have more fields
+    set(*sum, data);
+    return sum; // @perf .{cast,force(ST._Bytes)data, tag};
 }
 
 // set(*u, value): Set the type tag of 'u' to type_of(value), and copy 'value' into u's storage.
@@ -142,7 +159,7 @@ match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void) -> Returns {
 // TODO find a better type than Any for the proc pointers,
 // probably Code so case_procs can be compile-time, but then need to modify the argument types to be from the outer scope
 // See https://github.com/sjorsdonkers/sum_type-jai/blob/ec4b0f6ca08a8f65ff0a56517db6a545ecebcd3f/Sum_Type/module.jai#L177
-match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) -> Returns {
+match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) -> Returns { // TODO consider #add_context instead of capture
     expected_args    :: 1 + cast(u8)(Env != void);
     expected_returns :: cast(u8)(Returns != void);
 
