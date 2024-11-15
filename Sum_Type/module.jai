@@ -128,7 +128,7 @@ set :: (u: *$ST/Sum_Type, $tag: ST._Tag, value: $V) {
 
 // unwrap(u, T): Returns a pointer to the value stored in the variant of 'u'.
 // Crashes if 'u' is not of type 'T'. (TODO)
-// mango :=unwrap(fruitsicle, MyFruit.Mango);
+// mango := unwrap(fruitsicle, MyFruit.Mango);
 unwrap :: (u: Sum_Type, $T: Type) -> *type_of(T.value) {
     expected_tag :: #run index_of_type(u._value_types, T);
     assert(u._tag == expected_tag, "Attempt to get value of a % Sum_Type with a % tag", T, u._tag);
