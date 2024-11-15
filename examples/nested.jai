@@ -46,12 +46,12 @@ main :: () {
     t2 :u8= ---;
     if #complete food._tag == {
     case .Bread;
-        b := unwrap(food, MyFood.Bread).value;
+        b := unwrap(food, MyFood.Bread);
         if #complete b._tag == {
-        case .Baguette;  t2 = unwrap(b, MyBread.Baguette).value;
-        case .Croissant; t2 = cast(u8)unwrap(b, MyBread.Croissant).value.count;
+        case .Baguette;  t2 = <<unwrap(b, MyBread.Baguette);
+        case .Croissant; t2 = cast(u8)unwrap(b, MyBread.Croissant).count;
         case .Pan_De_Sal;
-            p := unwrap(b, MyBread.Pan_De_Sal).value;
+            p := unwrap(b, MyBread.Pan_De_Sal);
             t2 = cast(u8)ifx is_some(p) unwrap(p).spaghetti else 0;
         }
     case .Fruit; t2 = 9;

@@ -26,3 +26,7 @@ unwrap :: (option: Option($T)) -> *T {
     assert(option._tag == .Some, "Attempt to get value of a None Option");
     return cast(*T) *option._bytes.some;
 }
+unwrap_copy_or :: (option: Option($T), default: T) -> T { // TODO naming
+    if(option._tag == .Some) return <<cast(*T) *option._bytes.some;
+    return default;
+}

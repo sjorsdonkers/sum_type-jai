@@ -104,6 +104,8 @@ Variant :: struct {
     type: Type;
 }
 
+// Construct a Sum_Type with a specific variant and value.
+// fruitsicle := sum_type(MyFruit, .Pineapple, cast(u8)5);
 sum_type :: ($ST: Type, $tag: ST._Tag, value: $V) -> ST {
     variant_type :: ST._value_types[tag];
     data := variant_type.{value};
@@ -120,12 +122,12 @@ set :: (u: *Sum_Type, value: $T) {
     <<pointer = value;
 }
 
-// unwrap(u, T): Returns a pointer to the value stored in 'u' if it is of type 'T'.
+// unwrap(u, T): Returns a pointer to the value stored in the variant of 'u'.
 // Crashes if 'u' is not of type 'T'. (TODO)
-unwrap :: (u: Sum_Type, $T: Type) -> *T {
+unwrap :: (u: Sum_Type, $T: Type) -> *type_of(T.value) {
     expected_tag :: #run index_of_type(u._value_types, T);
     assert(u._tag == expected_tag, "Attempt to get value of a % Sum_Type with a % tag", T, u._tag);
-    return cast(*T) *u._bytes;
+    return *(cast(*T) *u._bytes).value;
 }
 
 current_type :: (u: Sum_Type) -> Type {

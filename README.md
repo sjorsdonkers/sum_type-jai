@@ -18,15 +18,14 @@ main :: () {
         .{"Kiwi", MyStruct},
     );
 
-    fruitsicle : MyFruit;
-    set(*fruitsicle, MyFruit.Pineapple.{5});
+    fruitsicle := sum_type(MyFruit, .Pineapple, cast(u8)5);
     set(*fruitsicle, MyFruit.Mango.{"Hello"});
     set(*fruitsicle, MyFruit.Kiwi.{.{34, true}});
 
     match(fruitsicle,
-        (p: MyFruit.Pineapple) { print("My pina, %\n", p); },
-        (m: MyFruit.Mango)     { print("My ango, %\n", m); },
-        (k: MyFruit.Kiwi)      { print("My iwi,  %\n", k); },
+        (p: MyFruit.Pineapple) { print("Basic match Pineapple: %\n", p); },
+        (m: MyFruit.Mango)     { print("Basic match Mango: %\n",     m); },
+        (k: MyFruit.Kiwi)      { print("Basic match Kiwi:  %\n",     k); },
     );
 }
 MyStruct :: struct {
