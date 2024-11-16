@@ -1,5 +1,5 @@
-// This is meant for optional data, generally in structs only not to indicate state or errors.
-// Do not use this as a procedure return type to indicate None left or so, use Result
+// This is meant for optional data, generally in structs only, not to indicate state or errors.
+// Do not use this as a procedure return type to indicate None left or so, use Result.
 Option :: struct ($T: Type) {
     using #as base: Sum_Type(
         .{"None", void},

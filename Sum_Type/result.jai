@@ -1,4 +1,8 @@
 // Meant as function return type to indicate Ok success or Other (error, end of something etc.)
+// NOTE: This is probably not the best way to handle failure and buble up errors in this language.
+// Especially as adding contextual information is noisy in the code even with helper functions.
+// Likely a defaulted true success return value, a q() alternative that works with that
+// and contextually information in the context (contstucted on failure) is better.
 Result :: struct ($Ok: Type, $Other: Type) {
     using #as base: Sum_Type(
         .{"Other", Other},
@@ -29,7 +33,7 @@ unwrap_other :: (result: Result($Ok, $Other)) -> Other {
 // proc :: () -> Result(s8, string) {
 //     result := other(s8, "Oh nose!");  // Creates a Result with an Other
 //     unwrapped := q(result);           // q() returns from this procedure or unwraps the result
-//     return ok(unwrapped + 9, string); // This will not be reached if result is an Other
+//     return ok(unwrapped + 9, string); // This will not be reached since result is an Other
 // }
 q :: (result: Result($Ok, $Other)) -> Ok #expand {
     if is_other(result) { `return result; }
@@ -48,6 +52,3 @@ q :: (result: Result($Ok, $Other), $Outer_Ok :Type) -> Ok #expand { // Can we de
     }
     return unwrap(result);
 }
-
-#import "Program_Print";
-#import "Compiler";
