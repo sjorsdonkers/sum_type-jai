@@ -31,7 +31,23 @@ unwrap_other :: (result: Result($Ok, $Other)) -> *Other {
 //     unwrapped := q(result);           // q() returns from this procedure or unwraps the result
 //     return ok(unwrapped + 9, string); // This will not be reached if result is an Other
 // }
-q :: (result: Result($Ok, $Other)) -> Ok #expand { // TODO can we detect wheter result is an L or R value?
-    if is_other(result) `return result;
+q :: (result: Result($Ok, $Other)) -> Ok #expand {
+    if is_other(result) { `return result; }
     return <<unwrap(result);
 }
+// Outer_Ok is needed if the current Ok type is different from the procedures Ok type
+// Other types are expected to match, if not a `map_other` procedure is needed
+// proc :: () -> Result(s32, string) {
+//     val :s8= q(level_2(yes), s32);    // q() returns an s8, but the proc returns an s32
+//     return ok(cast(s32)(val + 9), string);
+// }
+q :: (result: Result($Ok, $Other), $Outer_Ok :Type) -> Ok #expand { // Can we deduce Outer_Ok somehow?
+    if is_other(result) {
+        #if Outer_Ok == Ok { `return result; }
+        `return other(Outer_Ok, <<unwrap_other(result));
+    }
+    return <<unwrap(result);
+}
+
+#import "Program_Print";
+#import "Compiler";

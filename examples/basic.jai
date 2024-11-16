@@ -78,24 +78,18 @@ main :: () {
     // Result
     out := level_1(false);
     match(out,
-        (o: Result(s8, string).Ok)    { print("Ok: %\n",    o); },
-        (e: Result(s8, string).Other) { print("Other: %\n", e); },
+        (o: Result(s32, string).Ok)    { print("Ok: %\n",    o); },
+        (e: Result(s32, string).Other) { print("Other: %\n", e); },
     );
 }
 
-level_1 :: (yes: bool) -> Result(s8, string) {
-    val := q(level_2(yes)); // q() returns from this procedure or unwraps the result
-    return ok(val + 9, string);
+level_1 :: (yes: bool) -> Result(s32, string) {
+    val :s8= q(level_2(yes), s32);         // q() returns from if Other, s32 is needed if Ok types don't match
+    return ok(cast(s32)(val + 9), string);
 }
-
 level_2 :: (yes: bool) -> Result(s8, string) {
-    if yes {
-        return ok(cast(s8) 8, string);
-    }
-    return other(s8, "Oh nose!");
+    return ifx yes ok(cast(s8) 8, string) else other(s8, "Oh nose!");
 }
-
-//NestedUnion :: Result(Option(s32), string); // Nested requires #insert,stallable. Or Option(s32) to have previously been generated
 
 NU :: #import, file "../Sum_Type/module.jai";
 #poke_name NU MyStruct; // To avoid this I think we need $call := #caller_code and #insert,scope(call) to work on structs (Sum_Type)
