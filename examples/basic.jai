@@ -15,13 +15,13 @@ main :: () {
     if #complete fruitsicle._tag == {
     case .Pineapple;
         fruit := unwrap(fruitsicle, MyFruit.Pineapple);
-        print("Case Pineapple: %\n", <<fruit);
+        print("Case Pineapple: %\n", fruit);
     case .Mango;
         fruit := unwrap(fruitsicle, MyFruit.Mango);
-        print("Case Mango: %\n", <<fruit);
+        print("Case Mango: %\n", fruit);
     case .Kiwi;
         fruit := unwrap(fruitsicle, MyFruit.Kiwi);
-        print("Case Kiwi: %\n", <<fruit);
+        print("Case Kiwi: %\n", fruit);
     }
 
     // Basic match statement
@@ -70,7 +70,7 @@ main :: () {
     // Option
     opt :Option(s64)= some(5);
     if is_some(opt) {
-        print("Some: %\n", <<unwrap(opt));
+        print("Some: %\n", unwrap(opt));
     } else {
         print("None\n");
     }

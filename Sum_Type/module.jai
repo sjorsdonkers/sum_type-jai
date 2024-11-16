@@ -39,6 +39,9 @@
 // - Match procedure currently just supports 1 return value
 // - Type checks are debug asserts at the moment, should be compile-time. Also is there a good way to crash in release?
 // - Sum_Type variants may not be called the same as any of the types or as primitives (all names have this limitation, enums structs,..)
+// - It is not yet possible to make a sub-set or otherwise reusing existing variants.
+// - Match does not yet check if the case type is actually a variant of the Sum_Type
+// - Unwraps return by values to prevent pointers to temporaries, values tend to be small so maybe thats fine
 
 #load "option.jai";
 #load "result.jai";
@@ -126,10 +129,10 @@ set :: (u: *$ST/Sum_Type, $tag: ST._Tag, value: $V) {
 // unwrap(u, T): Returns a pointer to the value stored in the variant of 'u'.
 // Crashes if 'u' is not of type 'T'. (TODO)
 // mango := unwrap(fruitsicle, MyFruit.Mango);
-unwrap :: (u: Sum_Type, $T: Type) -> *type_of(T.value) {
+unwrap :: (u: Sum_Type, $T: Type) -> type_of(T.value) {
     expected_tag :: #run index_of_type(u._value_types, T);
     assert(u._tag == expected_tag, "Attempt to get value of a % Sum_Type with a % tag", T, u._tag);
-    return *(cast(*T) *u._bytes).value;
+    return (cast(*T) *u._bytes).value;
 }
 
 // Example usage:

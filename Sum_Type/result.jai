@@ -17,13 +17,13 @@ is_ok :: (result: Result($Ok, $Other)) -> bool {
 is_other :: (result: Result($Ok, $Other)) -> bool {
     return result._tag == .Other;
 }
-unwrap :: (result: Result($Ok, $Other)) -> *Ok {
+unwrap :: (result: Result($Ok, $Other)) -> Ok {
     assert(result._tag == .Ok, "Attempt to get Ok value of a Other Result");
-    return cast(*Ok) *result._bytes.ok;
+    return result._bytes.ok.value;
 }
-unwrap_other :: (result: Result($Ok, $Other)) -> *Other {
+unwrap_other :: (result: Result($Ok, $Other)) -> Other {
     assert(result._tag == .Other, "Attempt to get Other value of a Ok Result");
-    return cast(*Other) *result._bytes.other;
+    return result._bytes.other.value;
 }
 
 // proc :: () -> Result(s8, string) {
@@ -44,9 +44,9 @@ q :: (result: Result($Ok, $Other)) -> Ok #expand {
 q :: (result: Result($Ok, $Other), $Outer_Ok :Type) -> Ok #expand { // Can we deduce Outer_Ok somehow?
     if is_other(result) {
         #if Outer_Ok == Ok { `return result; }
-        `return other(Outer_Ok, <<unwrap_other(result));
+        `return other(Outer_Ok, unwrap_other(result));
     }
-    return <<unwrap(result);
+    return unwrap(result);
 }
 
 #import "Program_Print";

@@ -48,7 +48,7 @@ main :: () {
     case .Bread;
         b := unwrap(food, MyFood.Bread);
         if #complete b._tag == {
-        case .Baguette;  t2 = <<unwrap(b, MyBread.Baguette);
+        case .Baguette;  t2 = unwrap(b, MyBread.Baguette);
         case .Croissant; t2 = cast(u8)unwrap(b, MyBread.Croissant).count;
         case .Pan_De_Sal;
             p := unwrap(b, MyBread.Pan_De_Sal);

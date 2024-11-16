@@ -19,11 +19,11 @@ is_some :: (option: Option($T)) -> bool {
 is_none :: (option: Option($T)) -> bool {
     return option._tag == .None;
 }
-unwrap :: (option: Option($T)) -> *T {
+unwrap :: (option: Option($T)) -> T {
     assert(option._tag == .Some, "Attempt to get value of a None Option");
-    return cast(*T) *option._bytes.some;
+    return option._bytes.some.value;
 }
-unwrap_copy_or :: (option: Option($T), default: T) -> T { // TODO naming
-    if(option._tag == .Some) return <<cast(*T) *option._bytes.some;
+unwrap_or :: (option: Option($T), default: T) -> T {
+    if(option._tag == .Some) return option._bytes.some.value;
     return default;
 }
