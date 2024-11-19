@@ -120,10 +120,12 @@ sum_type :: ($ST: Type, $tag: ST._Tag, value: $V) -> ST {
 // Set the type tag of 'u' to type_of(value), and copy 'value' into u's storage.
 // set(*fruitsicle, .Mango, "Hello");
 set :: (u: *$ST/Sum_Type, $tag: ST._Tag, value: $V) {
-    variant_type :: ST._value_types[tag];
+    Variant_Type :: ST._value_types[tag];
     u._tag = tag;
-    pointer := cast(*variant_type) *u._bytes;
-    <<pointer = .{value};
+    #if type_of(Variant_Type.value) != void {
+        pointer := cast(*Variant_Type) *u._bytes;
+        <<pointer = .{value};
+    }
 }
 
 // unwrap(u, T): Returns a pointer to the value stored in the variant of 'u'.
