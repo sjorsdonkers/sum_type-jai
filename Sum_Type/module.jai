@@ -78,12 +78,13 @@ Sum_Type :: struct ($_variants: ..Variant) {
         print_to_builder(*builder, "];\n");
 
         // _Bytes :: union {
-        //     pineapple: Pineapple;
-        //     mango: Mango;
-        //     kiwi: Kiwi;
+        //     pineapple: Pineapple; // Only this variant is default initialized
+        //     mango: Mango = ---;
+        //     kiwi: Kiwi = ---;
         // };
         print_to_builder(*builder, "_Bytes :: union {\n");
-        for _variants { print_to_builder(*builder, "    %: %;\n", to_lower_copy_new(it.name), it.name); }
+        print_to_builder(*builder, "    %: %; // Only this variant is default initialized\n", to_lower_copy_new(_variants[0].name), _variants[0].name);
+        for 1.._variants.count-1 { print_to_builder(*builder, "    %: % = ---;\n", to_lower_copy_new(_variants[it].name), _variants[it].name); }
         print_to_builder(*builder, "};\n");
 
         // _Tag :: enum u8 {
