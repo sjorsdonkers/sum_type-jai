@@ -32,9 +32,8 @@ MyStruct :: struct {
     a: s32;
     b: bool;
 }
-NU :: #import "Sum_Type";
+using NU :: #import "Sum_Type";
 #poke_name NU MyStruct;
-#import "Sum_Type";
 #import "Basic";
 ```
 
