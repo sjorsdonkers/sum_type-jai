@@ -70,5 +70,5 @@ main :: () {
     // print("%\n", t);
 }
 
-using ST :: #import, file "../Sum_Type/module.jai";
+using ST :: #import, file "../module.jai";
 #import "Basic";
