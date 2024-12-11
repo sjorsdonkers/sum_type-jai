@@ -50,7 +50,7 @@ Sum_Type :: struct ($_variants: ..Variant) {
 
         return builder_to_string(*builder);
     };
-    _bytes: _Bytes;
+    using _bytes: _Bytes;  @UnionTag:_tag
     _tag:   _Tag; // '_tag' tells us the type of the value contained in '_bytes'
                   // It must be set to some index in '_value_types'
                   // It is an enum to make as it prints nices and #complete can be used on a switch statement
