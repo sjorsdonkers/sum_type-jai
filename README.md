@@ -41,7 +41,7 @@ Example showing `Option`:
 ```jai
 opt := some(5);
 if is_some(opt) {
-    print("Some: %\n", <<unwrap(opt));
+    print("Some: %\n", unwrap(opt));
 } else {
     print("None\n");
 }
