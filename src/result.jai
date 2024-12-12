@@ -37,7 +37,7 @@ unwrap_other :: (result: Result) -> result.Other {
 // }
 q :: (result: Result) -> result.Ok #expand {
     if is_other(result) { `return result; }
-    return <<unwrap(result);
+    return unwrap(result).*;
 }
 // Outer_Ok is needed if the current Ok type is different from the procedures Ok type
 // Other types are expected to match, if not a `map_other` procedure is needed

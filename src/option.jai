@@ -21,9 +21,9 @@ is_none :: (option: Option) -> bool {
 }
 unwrap :: (option: Option) -> option.T {
     assert(option._tag == .Some, "Attempt to get value of a None Option");
-    return xx option._bytes.some;
+    return option._bytes.some;
 }
 unwrap_or :: (option: Option, default: $T) -> T {
-    if(option._tag == .Some) return xx option._bytes.some;
+    if(option._tag == .Some) return option._bytes.some;
     return default;
 }

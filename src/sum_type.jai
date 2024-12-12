@@ -81,7 +81,7 @@ set :: (u: *$ST/Sum_Type, $tag: ST._Tag, value: $V) {
     Variant_Type :: ST._value_types[tag];
     u._tag = tag;
     pointer := cast(*Variant_Type) *u._bytes;
-    <<pointer = xx value;
+    pointer.* = xx value;
 }
 
 // unwrap(u, T): Returns a pointer to the value stored in the variant of 'u'.
@@ -105,13 +105,13 @@ unwrap :: (u: Sum_Type, $T: Type) -> T { // TODO check can we return original ty
 // if #complete fruitsicle._tag == {
 // case .Pineapple;
 //     fruit := unwrap(fruitsicle, MyFruit.Pineapple);
-//     print("Case Pineapple: %\n", <<fruit);
+//     print("Case Pineapple: %\n", fruit);
 // case .Mango;
 //     fruit := unwrap(fruitsicle, MyFruit.Mango);
-//     print("Case Mango: %\n", <<fruit);
+//     print("Case Mango: %\n", fruit);
 // case .Kiwi;
 //     fruit := unwrap(fruitsicle, MyFruit.Kiwi);
-//     print("Case Kiwi: %\n", <<fruit);
+//     print("Case Kiwi: %\n", fruit);
 // }
 match :: (u: $U, case_procs: ..Any, $Returns:Type=void) -> Returns {
     // U should be constraint to be a Sum_Type `$U/Sum_Type`, however we also need to accept Variants of the Sum_Type
@@ -155,10 +155,10 @@ match :: (u: $U, case_procs: ..Any, $Returns:Type=void, capture: $Env) -> Return
 
 call :: (bytes: $Bytes, case_proc: Any, $Returns:Type, capture: $Env) -> Returns {
     #if Env != void {
-        proc := <<cast(*#type (Bytes, Env)->Returns) case_proc.value_pointer;
+        proc := (cast(*#type (Bytes, Env)->Returns) case_proc.value_pointer).*;
         return proc(bytes, capture);
     } else {
-        proc := <<cast(*#type (Bytes)->Returns) case_proc.value_pointer;
+        proc := (cast(*#type (Bytes)->Returns) case_proc.value_pointer).*;
         return proc(bytes);
     }
 }
