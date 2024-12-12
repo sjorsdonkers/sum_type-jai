@@ -19,11 +19,7 @@ is_some :: (option: Option) -> bool {
 is_none :: (option: Option) -> bool {
     return option._tag == .None;
 }
-unwrap :: (option: Option($T)) -> T {
-    assert(option._tag == .Some, "Attempt to get value of a None Option");
-    return xx option._bytes.some;
-}
-unwrap :: (option: Option, $T: Type) -> T {
+unwrap :: (option: Option) -> option.T {
     assert(option._tag == .Some, "Attempt to get value of a None Option");
     return xx option._bytes.some;
 }

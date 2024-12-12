@@ -21,21 +21,13 @@ is_ok :: (result: Result) -> bool {
 is_other :: (result: Result) -> bool {
     return result._tag == .Other;
 }
-unwrap :: (result: Result($Ok, $Other)) -> Ok {
+unwrap :: (result: Result) -> result.Ok {
     assert(result._tag == .Ok, "Attempt to get Ok value of a Other Result");
-    return xx result._bytes.ok;
+    return result._bytes.ok;
 }
-unwrap :: (result: Result, $Ok: Type) -> Ok {
-    assert(result._tag == .Ok, "Attempt to get Ok value of a Other Result");
-    return xx result._bytes.ok;
-}
-unwrap_other :: (result: Result($Ok, $Other)) -> Other {
+unwrap_other :: (result: Result) -> result.Other {
     assert(result._tag == .Other, "Attempt to get Other value of a Ok Result");
-    return xx result._bytes.other;
-}
-unwrap_other :: (result: Result, $Other: Type) -> Other {
-    assert(result._tag == .Other, "Attempt to get Other value of a Ok Result");
-    return xx result._bytes.other;
+    return result._bytes.other;
 }
 
 // proc :: () -> Result(s8, string) {
@@ -43,7 +35,7 @@ unwrap_other :: (result: Result, $Other: Type) -> Other {
 //     unwrapped := q(result);           // q() returns from this procedure or unwraps the result
 //     return ok(unwrapped + 9, string); // This will not be reached since result is an Other
 // }
-q :: (result: Result($Ok, $Other)) -> Ok #expand {
+q :: (result: Result) -> result.Ok #expand {
     if is_other(result) { `return result; }
     return <<unwrap(result);
 }
@@ -53,10 +45,11 @@ q :: (result: Result($Ok, $Other)) -> Ok #expand {
 //     val :s8= q(level_2(yes), s32);    // q() returns an s8, but the proc returns an s32
 //     return ok(cast(s32)(val + 9), string);
 // }
-q :: (result: Result($Ok, $Other), $Outer_Ok :Type) -> Ok #expand { // Can we deduce Outer_Ok somehow?
+q :: (result: Result, $Outer_Ok :Type) -> result.Ok #expand { // Can we deduce Outer_Ok somehow?
     if is_other(result) {
-        #if Outer_Ok == Ok { `return result; }
-        `return other(Outer_Ok, unwrap_other(result));
+        #if Outer_Ok == #run variant_of(result.Ok) { `return result; }
+        Other_Inner :: #run variant_of(result.Other);
+        `return other(Outer_Ok, cast(Other_Inner) unwrap_other(result));
     }
     return unwrap(result);
 }

@@ -62,6 +62,11 @@ Variant :: struct {
     type: Type;
 }
 
+variant_of :: ($Variant: Type) -> Type {
+    #assert type_info(Variant).type == .VARIANT;
+    return get_type(type_info(Variant).variant_of);
+}
+
 // Construct a Sum_Type with a specific variant and value.
 // fruitsicle := sum_type(MyFruit, .Pineapple, cast(u8)5);
 sum_type :: ($ST: Type, $tag: ST._Tag, value: $V) -> ST {
@@ -79,11 +84,10 @@ set :: (u: *$ST/Sum_Type, $tag: ST._Tag, value: $V) {
     <<pointer = xx value;
 }
 
-// unwraps(u, T): Returns a pointer to the value stored in the variant of 'u'.
+// unwrap(u, T): Returns a pointer to the value stored in the variant of 'u'.
 // Crashes if 'u' is not of type 'T'. (TODO)
-// mango := unwraps(fruitsicle, MyFruit.Mango);
-// NOTE: named with `s` to avoid name collision with `unwrap` of option / result
-unwraps :: (u: Sum_Type, $T: Type) -> T { // TODO check can we return original type?
+// mango := unwrap(fruitsicle, MyFruit.Mango);
+unwrap :: (u: Sum_Type, $T: Type) -> T { // TODO check can we return original type?
     expected_tag :: #run index_of_type(u._value_types, T);
     assert(u._tag == expected_tag, "Attempt to get value of a % Sum_Type with a % tag", T, u._tag);
     return (cast(*T) *u._bytes).*;
@@ -171,3 +175,4 @@ current_type :: (u: Sum_Type) -> Type {
 
 #import "Basic";
 #import "String";
+#import "Compiler";

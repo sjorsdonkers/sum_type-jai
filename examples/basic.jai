@@ -14,13 +14,13 @@ main :: () {
     // Manual switch statement
     if #complete fruitsicle._tag == {
     case .Pineapple;
-        fruit := unwraps(fruitsicle, MyFruit.Pineapple);
+        fruit := unwrap(fruitsicle, MyFruit.Pineapple);
         print("Case Pineapple: %\n", fruit);
     case .Mango;
-        fruit := unwraps(fruitsicle, MyFruit.Mango);
+        fruit := unwrap(fruitsicle, MyFruit.Mango);
         print("Case Mango: %\n", fruit);
     case .Kiwi;
-        fruit := unwraps(fruitsicle, MyFruit.Kiwi);
+        fruit := unwrap(fruitsicle, MyFruit.Kiwi);
         print("Case Kiwi: %\n", fruit);
     }
 
