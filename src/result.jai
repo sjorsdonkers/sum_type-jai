@@ -15,19 +15,27 @@ ok :: (value: $Ok, $Other: Type) -> Result(Ok, Other) {
 other :: ($Ok: Type, value: $Other) -> Result(Ok, Other) {
     return sum_type(Result(Ok, Other), .Other, value);
 }
-is_ok :: (result: Result($Ok, $Other)) -> bool {
+is_ok :: (result: Result) -> bool {
     return result._tag == .Ok;
 }
-is_other :: (result: Result($Ok, $Other)) -> bool {
+is_other :: (result: Result) -> bool {
     return result._tag == .Other;
 }
 unwrap :: (result: Result($Ok, $Other)) -> Ok {
     assert(result._tag == .Ok, "Attempt to get Ok value of a Other Result");
-    return result._bytes.ok.value;
+    return xx result._bytes.ok;
+}
+unwrap :: (result: Result, $Ok: Type) -> Ok {
+    assert(result._tag == .Ok, "Attempt to get Ok value of a Other Result");
+    return xx result._bytes.ok;
 }
 unwrap_other :: (result: Result($Ok, $Other)) -> Other {
     assert(result._tag == .Other, "Attempt to get Other value of a Ok Result");
-    return result._bytes.other.value;
+    return xx result._bytes.other;
+}
+unwrap_other :: (result: Result, $Other: Type) -> Other {
+    assert(result._tag == .Other, "Attempt to get Other value of a Ok Result");
+    return xx result._bytes.other;
 }
 
 // proc :: () -> Result(s8, string) {

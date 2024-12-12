@@ -31,10 +31,10 @@ main :: () {
 
     // Nested match
     t := match(food,
-        (b: MyFood.Bread) -> u8 { return match(b.value,
-            (b: MyBread.Baguette)   -> u8 {return b.value;},
-            (c: MyBread.Croissant)  -> u8 {return cast(u8)c.value.count;},
-            (p: MyBread.Pan_De_Sal) -> u8 {return cast(u8)ifx is_some(p.value) unwrap(p.value).spaghetti else 0;},
+        (b: MyFood.Bread) -> u8 { return match(b,
+            (b: MyBread.Baguette)   -> u8 {return b;},
+            (c: MyBread.Croissant)  -> u8 {return cast(u8)c.count;},
+            (p: MyBread.Pan_De_Sal) -> u8 {return cast(u8)ifx is_some(p) unwrap(p, MyStruct).spaghetti else 0;},
             Returns=u8
             ); },
         (f: MyFood.Fruit) -> u8 { return 9; },
@@ -46,13 +46,13 @@ main :: () {
     t2 :u8= ---;
     if #complete food._tag == {
     case .Bread;
-        b := unwrap(food, MyFood.Bread);
+        b := unwraps(food, MyFood.Bread);
         if #complete b._tag == {
-        case .Baguette;  t2 = unwrap(b, MyBread.Baguette);
-        case .Croissant; t2 = cast(u8)unwrap(b, MyBread.Croissant).count;
+        case .Baguette;  t2 = unwraps(b, MyBread.Baguette);
+        case .Croissant; t2 = cast(u8)unwraps(b, MyBread.Croissant).count;
         case .Pan_De_Sal;
-            p := unwrap(b, MyBread.Pan_De_Sal);
-            t2 = cast(u8)ifx is_some(p) unwrap(p).spaghetti else 0;
+            p := unwraps(b, MyBread.Pan_De_Sal);
+            t2 = cast(u8)ifx is_some(p) unwrap(p, MyStruct).spaghetti else 0;
         }
     case .Fruit; t2 = 9;
     }

@@ -13,17 +13,21 @@ none :: ($V: Type) -> Option(V) {
     nope: void;
     return sum_type(Option(V), .None, nope);
 }
-is_some :: (option: Option($T)) -> bool {
+is_some :: (option: Option) -> bool {
     return option._tag == .Some;
 }
-is_none :: (option: Option($T)) -> bool {
+is_none :: (option: Option) -> bool {
     return option._tag == .None;
 }
 unwrap :: (option: Option($T)) -> T {
     assert(option._tag == .Some, "Attempt to get value of a None Option");
-    return option._bytes.some.value;
+    return xx option._bytes.some;
 }
-unwrap_or :: (option: Option($T), default: T) -> T {
-    if(option._tag == .Some) return option._bytes.some.value;
+unwrap :: (option: Option, $T: Type) -> T {
+    assert(option._tag == .Some, "Attempt to get value of a None Option");
+    return xx option._bytes.some;
+}
+unwrap_or :: (option: Option, default: $T) -> T {
+    if(option._tag == .Some) return xx option._bytes.some;
     return default;
 }

@@ -18,10 +18,10 @@ Sum_Type :: struct ($_variants: ..Variant) {
             }
         }
 
-        // Pineapple :: struct { value: u8; }
-        // Mango :: struct { value: string; }
-        // Kiwi :: struct { value: MyStruct; }
-        for _variants { print_to_builder(*builder, "%1 :: struct { value: %2; } // Hint: `#poke_name ST %2` if type is undeclared \n", it.name, it.type); }
+        // Pineapple :: #type,isa u8;
+        // Mango :: #type,isa string;
+        // Kiwi :: #type,isa MyStruct;
+        for _variants { print_to_builder(*builder, "%1 :: #type,isa %2; // Hint: `#poke_name ST %2` if type is undeclared \n", it.name, it.type); }
 
         // _value_types :: Type.[Pineapple, Mango, Kiwi]; // TODO Remove when possible
         // _value_types is the same as _variants, but using a native type which allows us to process them at compile-time (bug reported)
@@ -75,19 +75,18 @@ sum_type :: ($ST: Type, $tag: ST._Tag, value: $V) -> ST {
 set :: (u: *$ST/Sum_Type, $tag: ST._Tag, value: $V) {
     Variant_Type :: ST._value_types[tag];
     u._tag = tag;
-    #if type_of(Variant_Type.value) != void {
-        pointer := cast(*Variant_Type) *u._bytes;
-        <<pointer = .{value};
-    }
+    pointer := cast(*Variant_Type) *u._bytes;
+    <<pointer = xx value;
 }
 
-// unwrap(u, T): Returns a pointer to the value stored in the variant of 'u'.
+// unwraps(u, T): Returns a pointer to the value stored in the variant of 'u'.
 // Crashes if 'u' is not of type 'T'. (TODO)
-// mango := unwrap(fruitsicle, MyFruit.Mango);
-unwrap :: (u: Sum_Type, $T: Type) -> type_of(T.value) {
+// mango := unwraps(fruitsicle, MyFruit.Mango);
+// NOTE: named with `s` to avoid name collision with `unwrap` of option / result
+unwraps :: (u: Sum_Type, $T: Type) -> T { // TODO check can we return original type?
     expected_tag :: #run index_of_type(u._value_types, T);
     assert(u._tag == expected_tag, "Attempt to get value of a % Sum_Type with a % tag", T, u._tag);
-    return (cast(*T) *u._bytes).value;
+    return (cast(*T) *u._bytes).*;
 }
 
 // Example usage:
@@ -110,14 +109,15 @@ unwrap :: (u: Sum_Type, $T: Type) -> type_of(T.value) {
 //     fruit := unwrap(fruitsicle, MyFruit.Kiwi);
 //     print("Case Kiwi: %\n", <<fruit);
 // }
-match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void) -> Returns {
+match :: (u: $U, case_procs: ..Any, $Returns:Type=void) -> Returns {
+    // U should be constraint to be a Sum_Type `$U/Sum_Type`, however we also need to accept Variants of the Sum_Type
     v :void; // Is there a better inline way to make a void values than (){}()?
     return match(u, ..case_procs, Returns=Returns, capture=v);
 }
 // TODO find a better type than Any for the proc pointers,
 // probably Code so case_procs can be compile-time, but then need to modify the argument types to be from the outer scope
 // See https://github.com/sjorsdonkers/sum_type-jai/blob/ec4b0f6ca08a8f65ff0a56517db6a545ecebcd3f/Sum_Type/module.jai#L177
-match :: (u: $U/Sum_Type, case_procs: ..Any, $Returns:Type=void, capture: $Env) -> Returns { // TODO consider #add_context instead of capture
+match :: (u: $U, case_procs: ..Any, $Returns:Type=void, capture: $Env) -> Returns { // TODO consider #add_context instead of capture
     sum_info :: type_info(U);
     expected_args    :: 1 + cast(u8)(Env != void);
     expected_returns :: cast(u8)(Returns != void);
