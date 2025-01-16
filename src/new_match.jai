@@ -12,18 +12,18 @@ Fruit :: struct {
 }
 
 main :: () {
-    fruit := Fruit.{_tag=.PANGO, pango="yo"};
+    fruit := Fruit.{_tag=.PANGO, _bytes.pango="yo"};
 
     in:= 5;
     out: string;
 
-    match(#code if fruit == {
-    case .MANGO; // TODO check if works when enum is usinged in this scope, so no . before identifier
-        assert(type_of(my_var) == u8);
-        out = tprint("Mango %, %\n", my_var, in);
+    match(#code if *fruit == {
+    case .MANGO; // TODO check if works when enum is using-ed in this scope, so no . before identifier
+        assert(type_of(my_var) == *u8);
+        out = tprint("Mango %, %\n", my_var.*, in);
     case .PANGO;
-        assert(type_of(my_var) == string);
-        out = tprint("Pango %, %\n", my_var, in);
+        assert(type_of(my_var) == *string);
+        out = tprint("Pango %, %\n", my_var.*, in);
     }, "my_var");
 
     print(out);
@@ -40,14 +40,13 @@ match :: (code:Code, var_name:="var", call:=#caller_code) #expand {
 
     union_name, tag_name :: #run get_union_info(type_of(condition));
     #insert #run tprint("enum_info  :: type_info(type_of(condition.%));", tag_name);
-    #insert #run tprint("union_info :: type_info(type_of(condition.%));", union_name);
+    #insert #run tprint("union_info :: type_info(type_of(condition.%));", union_name); // TODO It may be that the union does not have a name
 
     #insert #run tprint("`tag_value := condition.%;", tag_name); // TODO We don't need this variable here instead of making a variable can we turn this string directly into code?
 
     #insert,scope(call) -> Code {
-        root:= compiler_get_nodes(code);  assert(root.kind == .IF);
-        if_root :*Code_If= xx root;
-        assert((if_root.if_flags & .IS_SWITCH_STATEMENT) > 0);
+        root    := compiler_get_nodes(code);  assert(root.kind == .IF);
+        if_root :*Code_If= xx root;       assert((if_root.if_flags & .IS_SWITCH_STATEMENT) > 0);
 
         if_root.condition = compiler_get_nodes(code_of(tag_value));
 
@@ -56,6 +55,8 @@ match :: (code:Code, var_name:="var", call:=#caller_code) #expand {
             code_case :*Code_Case= xx it;
             if code_case.condition == null continue; // Default case
 
+            // Get the name of the enum variant from the case condition.
+            // TODO this may be a procedure that we need to resolve, CASE conditions need to resolve at compile time.
             // case condition expression could be complex, dot operators are to be expected
             // Recursively get till we are at the last @speed we we don't need to collect or recurse into all, we just need the last one
             nodes: [..] *Code_Node;
@@ -63,40 +64,44 @@ match :: (code:Code, var_name:="var", call:=#caller_code) #expand {
             assert(nodes.count > 0 && peek(nodes).kind == .IDENT);
             enum_variant :*Code_Ident= xx peek(nodes);
 
-            // Use idx to get name of union variant and replace var with unionvariantname
+            // Use index to get name of union variant and assign the value to `var`
             found, index := array_find(enum_info.names, enum_variant.name);
             assert(found, ".% is not a variant of enum %", enum_variant.name, enum_info.name);
             assert(union_info.members.count > index);
             unions_variant_name := union_info.members[index].name;
 
-            // var:= condition.variant_name; TODO if condition is a pointer var should be a pointer
-            make_var_declaration :: (variant_name: string, variable_name: string) -> *Code_Declaration {
-                left_ident:= New(Code_Ident);
-                left_ident.name = "condition";
+            make_var_declaration :: (union_name: string, variant_name: string, variable_name: string, by_pointer: bool) -> *Code_Declaration {
+                anonymous_declaration         :: #code variable_name:=  condition.variant_name;
+                anonymous_pointer_declaration :: #code variable_name:= *condition.variant_name;
+                nested_declaration            :: #code variable_name:=  condition.union_name.variant_name;
+                nested_pointer_declaration    :: #code variable_name:= *condition.union_name.variant_name;
 
-                right_ident:= New(Code_Ident);
-                right_ident.name = variant_name;
+                template := ifx by_pointer
+                    then ifx union_name then nested_pointer_declaration else anonymous_pointer_declaration
+                    else ifx union_name then nested_declaration         else anonymous_declaration;
 
-                new_binop:= New(Code_Binary_Operator);
-                new_binop.kind = .BINARY_OPERATOR;
-                new_binop.operator_type = #char ".";
-                new_binop.left = left_ident;
-                new_binop.right = right_ident;
+                root, decl_nodes := compiler_get_nodes(template);  assert(root.kind == .DECLARATION);
+                decl :*Code_Declaration= xx root;
 
-                decl := New(Code_Declaration);
+                // Rename variables in the declaration
                 decl.name = variable_name;
-                decl.expression = new_binop;
+                for decl_nodes if it.kind == .IDENT {
+                    ident :*Code_Ident= xx it;
+                    if ident.name == "union_name"    ident.name = union_name;
+                    if ident.name == "variant_name"  ident.name = variant_name;
+                }
+
+                builder : String_Builder;
+                print_expression(*builder, decl);
+                log("%", builder_to_string(*builder));
 
                 return decl;
             }
 
-
-
-
             // Prepend the new statement to the existing statements of the current case block
             new_statements : [..] *Code_Node;
-            array_add(*new_statements, make_var_declaration(unions_variant_name, var_name));
-            // array_add(*new_statements, compiler_get_nodes(#code #insert tprint("var:= condition.%;", unions_variant_name) ));
+            condition_by_pointer := type_info(type_of(condition)).type == .POINTER;
+            array_add(*new_statements, make_var_declaration(union_name, unions_variant_name, var_name, condition_by_pointer));
             array_add(*new_statements, ..code_case.then_block.statements);
             code_case.then_block.statements = new_statements;
         }
@@ -144,3 +149,4 @@ get_union_info :: ($type: Type) -> union_name:="", tag_name:="" {
 #import "Compiler";
 #import "Print_Vars";
 #import "Code_Visit";
+#import "Program_Print";
