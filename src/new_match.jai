@@ -3,21 +3,21 @@ Fruit :: struct {
         MANGO;
         PANGO;
     }
-    using variants: union {
+    variants: union {
         mango: u8;
         pango: string = ---;
     } @UnionTag:tag
 }
 
 main :: () {
-    fruit := Fruit.{tag=.PANGO, pango="yo"};
+    fruit := Fruit.{tag=.PANGO, variants.pango="yo"};
     match(#code if fruit == {
     case .MANGO; print("Mango % of type: %\n", var, type_of(var));
     case .PANGO; print("Pango % of type: %\n", var, type_of(var));
     });
 }
 
-// Match expands a switch statement on a sum-type, such that the union variant is accessible in the case block.
+// Match expands a switch statement on a sum-type struct, such that the union variant is accessible in the case block.
 // A sum-type is defined as a struct that has a tag enum and a union with a @UnionTag note to indicate the tag member name.
 // The tag and union are required to have the same number of variants. Only 1 tagged union pair per struct is supported.
 // The union may not be hidden within a nested using-ed struct.
@@ -41,21 +41,22 @@ main :: () {
 // Ideally you could change it with official syntax like: `if my_var: fruit == {`
 match :: (code:Code, var_name:="var", call:=#caller_code) #expand {
     // Compute the original condition expression here once, to prevent recomputation and to enable us to get the type as well as the values out
-    `condition:= #insert,scope(call) -> Code {
+    `_condition:= #insert,scope(call) -> Code {
         root := compiler_get_nodes(code);  assert(root.kind == .IF);
         return compiler_get_code(cast(*Code_If, root).condition);
     };
 
-    union_name, tag_name :: #run get_union_info(type_of(condition));
-    #insert #run tprint("enum_info  :: type_info(type_of(condition.%));", tag_name);
-    #insert #run tprint("union_info :: type_info(type_of(condition.%));", union_name); // TODO It may be that the union does not have a name
+    // Note: currently it is not possible for the union not to have a name as a name is required to put a tag on it.
+    union_name, tag_name :: #run get_union_info(type_of(_condition));
+    #insert #run tprint("enum_info  :: type_info(type_of(_condition.%));", tag_name);
+    #insert #run tprint("union_info :: type_info(type_of(_condition.%));", union_name);
 
     #insert,scope(call) -> Code {
-        root            := compiler_get_nodes(code);  assert(root.kind == .IF);
-        if_root :*Code_If= xx root;                   assert((if_root.if_flags & .IS_SWITCH_STATEMENT) > 0);
+        if_root :*Code_If= xx compiler_get_nodes(code);
+        assert((if_root.if_flags & .IS_SWITCH_STATEMENT) > 0);
 
         // Change the condition to be the tag enum value of the original condition
-        template :: #code condition.tag_name;
+        template :: #code _condition.tag_name;
         new_condition, tag_nodes:= compiler_get_nodes(template);
         for tag_nodes if it.kind == .IDENT {
             ident :*Code_Ident= xx it;
@@ -87,11 +88,11 @@ match :: (code:Code, var_name:="var", call:=#caller_code) #expand {
             make_var_declaration :: (union_name: string, variant_name: string, variable_name: string, by_pointer: bool) -> *Code_Declaration {
                 template:= ifx union_name
                     then ifx by_pointer
-                        then #code variable_name:= *condition.union_name.variant_name
-                        else #code variable_name:=  condition.union_name.variant_name
+                        then #code variable_name:= *_condition.union_name.variant_name
+                        else #code variable_name:=  _condition.union_name.variant_name
                     else ifx by_pointer
-                        then #code variable_name:= *condition.variant_name
-                        else #code variable_name:=  condition.variant_name;
+                        then #code variable_name:= *_condition.variant_name
+                        else #code variable_name:=  _condition.variant_name;
 
                 root, decl_nodes := compiler_get_nodes(template);  assert(root.kind == .DECLARATION);
                 decl :*Code_Declaration= xx root;
@@ -108,12 +109,12 @@ match :: (code:Code, var_name:="var", call:=#caller_code) #expand {
 
             // Prepend the new statement to the existing statements of the current case block
             new_statements : [..] *Code_Node;
-            condition_by_pointer := type_info(type_of(condition)).type == .POINTER;
+            condition_by_pointer := type_info(type_of(_condition)).type == .POINTER;
             array_add(*new_statements, make_var_declaration(union_name, unions_variant_name, var_name, condition_by_pointer));
             array_add(*new_statements, ..code_case.then_block.statements);
             code_case.then_block.statements = new_statements;
         }
-        return compiler_get_code(root);
+        return compiler_get_code(if_root);
     }
 }
 
